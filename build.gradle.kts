@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "1.9.20"
+    kotlin("jvm") version property("kotlinVersion").get()
     id("org.jetbrains.intellij") version "1.16.0"
 }
 
 group = "com.ideaplugins"
-version = "1.0.0"
+version = property("pluginVersion").get()
 
 repositories {
     mavenCentral()
@@ -16,7 +16,7 @@ dependencies {
 }
 
 intellij {
-    version.set("2023.2")
+    version.set(property("ideaVersion").get())
     type.set("IU")
 }
 

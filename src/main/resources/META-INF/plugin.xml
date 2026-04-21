@@ -1,0 +1,32 @@
+<idea-plugin>
+    <id>com.lianggong.comparenavigator</id>
+    <name>Compare Navigator</name>
+    <vendor email="liang.gong@gmail.com" url="https://github.com/lianggong/compare-navigator">
+        Liang Gong
+    </vendor>
+
+    <description><![CDATA[
+        Navigate and compare files during refactoring using #COMPARE comments.
+        Mark code with #COMPARE:/path/to/file.java comments, and click the gutter icon
+        to instantly compare with the destination file using IntelliJ's diff viewer.
+    ]]></description>
+
+    <version>0.0.1</version>
+    <idea-version since-build="231" />
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.lineMarkerProvider implementation="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
+        <notificationGroup id="Compare Navigator" displayType="BALLOON" />
+    </extensions>
+
+    <actions>
+        <action id="CompareNavigator.ShowDiff"
+                class="com.lianggong.comparenavigator.actions.CompareActionHandler"
+                text="Show Comparison">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift C" />
+        </action>
+    </actions>
+</idea-plugin>

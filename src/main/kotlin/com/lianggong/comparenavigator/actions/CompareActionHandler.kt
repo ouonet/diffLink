@@ -1,7 +1,7 @@
 package com.lianggong.comparenavigator.actions
 
+import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
-import com.intellij.diff.contents.FileContent
 import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -24,9 +24,10 @@ class CompareActionHandler : AnAction() {
         project: Project
     ) {
         try {
-            // Create diff contents from both files
-            val sourceContent = FileContent(sourceFile, null)
-            val destContent = FileContent(destinationFile, null)
+            // Create diff contents from both files using DiffContentFactory
+            val contentFactory = DiffContentFactory.getInstance()
+            val sourceContent = contentFactory.create(project, sourceFile)
+            val destContent = contentFactory.create(project, destinationFile)
 
             // Create diff request
             val diffRequest = SimpleDiffRequest(

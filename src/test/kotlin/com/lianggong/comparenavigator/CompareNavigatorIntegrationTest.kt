@@ -74,10 +74,10 @@ class CompareNavigatorIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
             marker.icon
         )
 
-        // Step 6: Verify the icon is the FindAndReplace icon (success case)
+        // Step 6: Verify the icon is the Diff icon (success case)
         assertEquals(
-            "Marker should be FindAndReplace icon for valid path",
-            AllIcons.Actions.FindAndReplace,
+            "Marker should be Diff icon for valid path",
+            AllIcons.Actions.Diff,
             marker.icon
         )
     }

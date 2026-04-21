@@ -68,7 +68,7 @@ class CompareMarkerProvider : LineMarkerProvider {
         val icon = if (isError) {
             com.intellij.icons.AllIcons.General.Error
         } else {
-            com.intellij.icons.AllIcons.Actions.FindAndReplace
+            com.intellij.icons.AllIcons.Actions.Diff
         }
 
         val tooltip = if (isError) {

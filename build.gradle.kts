@@ -23,6 +23,7 @@ intellij {
     version.set("2023.2.1")
     type.set("IU")
     plugins.set(listOf("java"))
+    updateSinceUntilBuild.set(false)
 }
 
 tasks {

@@ -18,7 +18,7 @@
     <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider language="JAVA" implementation="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
+        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
         <notificationGroup id="Compare Navigator" displayType="BALLOON" />
     </extensions>
 

@@ -6,9 +6,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 /**
  * Resolves and validates file paths from #DiffLink comments.
  * Path resolution rules:
- * - If path starts with "/": treated as absolute path from project root (e.g., "/src/main/java/File.java")
- * - Otherwise: treated as relative path from project root (e.g., "src/main/java/File.java")
- * Both styles resolve to the same location relative to the project root.
+ * - Relative path (no leading "/"): resolved from the project root, e.g. "src/main/java/File.java"
+ * - Absolute path (leading "/"): used as a computer filesystem path, e.g. "/Users/neo/projects/File.java"
  */
 class ComparePathResolver {
 
@@ -18,47 +17,38 @@ class ComparePathResolver {
     }
 
     fun resolvePath(path: String, project: Project): ResolveResult {
-        // Trim whitespace
         val trimmedPath = path.trim()
 
-        // Validate path is not empty
         if (trimmedPath.isEmpty()) {
             return ResolveResult.Error("Path cannot be empty")
         }
 
-        // Check for directory traversal attempts
         if (trimmedPath.contains("..") || trimmedPath.contains("~")) {
             return ResolveResult.Error("Path traversal not allowed")
         }
 
-        // Normalize path to start with / for consistent resolution
-        // Both "/path/to/file" and "path/to/file" resolve relative to project root
-        val normalizedPath = if (trimmedPath.startsWith("/")) {
-            trimmedPath
-        } else {
-            "/$trimmedPath"
-        }
-
-        // Reject external URLs or file:// schemes
-        if (normalizedPath.startsWith("http") || normalizedPath.startsWith("file://")) {
+        if (trimmedPath.startsWith("http") || trimmedPath.startsWith("file://")) {
             return ResolveResult.Error("External URLs not allowed")
         }
 
         try {
-            // Get project root - try multiple ways to find it
-            val baseDir = project.basePath ?: project.projectFile?.parent?.path
-                ?: return ResolveResult.Error("Project root not found")
+            val absolutePath = if (trimmedPath.startsWith("/")) {
+                // Computer absolute path — use directly
+                trimmedPath
+            } else {
+                // Relative path — resolve from project root
+                val baseDir = project.basePath
+                    ?: return ResolveResult.Error("Project root not found")
+                "$baseDir/$trimmedPath"
+            }
 
-            // Construct absolute path
-            val absolutePath = baseDir + normalizedPath
-
-            // Look up virtual file
-            val virtualFile = VirtualFileManager.getInstance().findFileByUrl("file://$absolutePath")
+            val virtualFile = VirtualFileManager.getInstance()
+                .findFileByUrl("file://$absolutePath")
 
             return if (virtualFile != null && virtualFile.exists()) {
                 ResolveResult.Success(virtualFile)
             } else {
-                ResolveResult.Error("File not found: $normalizedPath")
+                ResolveResult.Error("File not found: $absolutePath")
             }
         } catch (_: Exception) {
             return ResolveResult.Error("Error resolving path: Unknown error")

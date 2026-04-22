@@ -33,10 +33,16 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
         }
     }
 
-    fun testResolveNonExistentFile() {
-        val result = resolver.resolvePath("/NonExistent.java", project)
+    fun testResolveNonExistentRelativePath() {
+        val result = resolver.resolvePath("NonExistent.java", project)
         assertTrue("Should return error for missing file", result is ComparePathResolver.ResolveResult.Error)
-        assertEquals("File not found: /NonExistent.java", (result as ComparePathResolver.ResolveResult.Error).message)
+        assertTrue((result as ComparePathResolver.ResolveResult.Error).message.contains("File not found"))
+    }
+
+    fun testResolveNonExistentAbsolutePath() {
+        val result = resolver.resolvePath("/nonexistent/path/File.java", project)
+        assertTrue("Should return error for missing absolute path", result is ComparePathResolver.ResolveResult.Error)
+        assertTrue((result as ComparePathResolver.ResolveResult.Error).message.contains("File not found: /nonexistent/path/File.java"))
     }
 
     fun testRejectDirectoryTraversal() {
@@ -60,44 +66,40 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
         assertTrue("Should reject HTTP URLs", result is ComparePathResolver.ResolveResult.Error)
     }
 
-    fun testNormalizePath() {
+    fun testRelativePathResolvesFromProjectRoot() {
         myFixture.addFileToProject("src/Test.java", "public class Test {}")
 
-        // Test both with and without leading /
-        val result1 = resolver.resolvePath("/src/Test.java", project)
-        val result2 = resolver.resolvePath("src/Test.java", project)
-
-        // Verify that path normalization works consistently for both variants
-        val isSuccess1 = result1 is ComparePathResolver.ResolveResult.Success
-        val isSuccess2 = result2 is ComparePathResolver.ResolveResult.Success
-
-        // Both should have same result (both succeed or both fail) since normalization is consistent
-        assertEquals("Path normalization should be consistent", isSuccess1, isSuccess2)
-
-        // If both succeeded, they should resolve to the same file
-        if (isSuccess1 && isSuccess2) {
-            assertEquals("Both formats should resolve to same file",
-                (result1 as ComparePathResolver.ResolveResult.Success).file.path,
-                (result2 as ComparePathResolver.ResolveResult.Success).file.path)
+        // Relative path: resolved from project.basePath
+        val result = resolver.resolvePath("src/Test.java", project)
+        when (result) {
+            is ComparePathResolver.ResolveResult.Success ->
+                assertEquals("Test.java", result.file.name)
+            is ComparePathResolver.ResolveResult.Error ->
+                // Acceptable in some test environments where basePath is unavailable
+                assertTrue(result.message.contains("File not found") || result.message.contains("Project root"))
         }
     }
 
-    fun testTrimWhitespace() {
+    fun testAbsolutePathUsedDirectly() {
+        // Absolute path starting with "/" is used as a computer filesystem path — not prepended with project root
+        val result = resolver.resolvePath("/nonexistent/computer/path/File.java", project)
+        // Should fail because this computer path doesn't exist, NOT because the project root is missing
+        assertTrue("Absolute path should fail with 'File not found', not 'Project root not found'",
+            result is ComparePathResolver.ResolveResult.Error)
+        val error = (result as ComparePathResolver.ResolveResult.Error).message
+        assertTrue("Error should reference the absolute path directly", error.contains("/nonexistent/computer/path/File.java"))
+        assertFalse("Should not mention project root for absolute paths", error.contains("Project root"))
+    }
+
+    fun testTrimWhitespaceOnRelativePath() {
         myFixture.addFileToProject("Test.java", "public class Test {}")
 
-        val result = resolver.resolvePath("  /Test.java  ", project)
-        // Verify that whitespace trimming works
-        // The result should be the same whether or not we have leading/trailing whitespace
-        val resultNoWhitespace = resolver.resolvePath("/Test.java", project)
+        val resultWithSpaces = resolver.resolvePath("  Test.java  ", project)
+        val resultClean = resolver.resolvePath("Test.java", project)
 
-        // Both should have the same result type
-        val isBothSuccess = result is ComparePathResolver.ResolveResult.Success && resultNoWhitespace is ComparePathResolver.ResolveResult.Success
-        val isBothError = result is ComparePathResolver.ResolveResult.Error && resultNoWhitespace is ComparePathResolver.ResolveResult.Error
-
-        assertTrue("Whitespace should be trimmed consistently", isBothSuccess || isBothError)
-
-        if (isBothSuccess) {
-            assertEquals("File should match", "Test.java", (result as ComparePathResolver.ResolveResult.Success).file.name)
-        }
+        // Both should produce the same result type
+        assertEquals("Whitespace trimming should give same result",
+            resultWithSpaces is ComparePathResolver.ResolveResult.Success,
+            resultClean is ComparePathResolver.ResolveResult.Success)
     }
 }

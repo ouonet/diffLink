@@ -47,10 +47,9 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 ```
 
 **Path Rules:**
-- Paths starting with `/` are treated as absolute paths from project root: `/src/main/java/Example.java`
-- Paths without `/` are treated as relative paths from project root: `src/main/java/Example.java`
-- Both styles resolve to the same location relative to the project root
-- Whitespace is trimmed automatically: `#DiffLink:  /path/to/file  ` works fine
+- **Relative path** (no leading `/`): resolved from the project root — `src/main/java/Example.java`
+- **Absolute path** (leading `/`): used as a computer filesystem path — `/Users/neo/projects/repo/src/Example.java`
+- Whitespace is trimmed automatically: `#DiffLink:  src/main/java/File.java  ` works fine
 
 ### Two-Parameter Syntax
 

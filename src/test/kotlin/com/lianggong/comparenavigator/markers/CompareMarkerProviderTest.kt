@@ -260,4 +260,75 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         }
         assertTrue("Should find marker in text file", markerFound)
     }
+
+    fun testParseSingleParameterMarkerFormat() {
+        // Create a test file with a single-parameter compare directive
+        val javaFile = myFixture.addFileToProject(
+            "Current.java",
+            """
+                // #COMPARE:/reference/File.java
+                public class Current {}
+            """.trimIndent()
+        )
+
+        // Create the destination file
+        myFixture.addFileToProject("reference/File.java", "public class File {}")
+
+        // Find the comment
+        val comment = PsiTreeUtil.findChildOfType(javaFile, PsiComment::class.java)
+        assertNotNull("Comment should be found", comment)
+
+        // Get the marker
+        val marker = markerProvider.getLineMarkerInfo(comment!!)
+        assertNotNull("Should find marker with single parameter", marker)
+        assertNotNull("Marker should have an icon", marker!!.icon)
+    }
+
+    fun testParseTwoParameterMarkerFormat() {
+        // Create a test file with a two-parameter compare directive
+        val javaFile = myFixture.addFileToProject(
+            "Version1.java",
+            """
+                // #COMPARE:/version1/File.java, /version2/File.java
+                public class Version1 {}
+            """.trimIndent()
+        )
+
+        // Create both destination files
+        myFixture.addFileToProject("version1/File.java", "public class Version1File {}")
+        myFixture.addFileToProject("version2/File.java", "public class Version2File {}")
+
+        // Find the comment
+        val comment = PsiTreeUtil.findChildOfType(javaFile, PsiComment::class.java)
+        assertNotNull("Comment should be found", comment)
+
+        // Get the marker
+        val marker = markerProvider.getLineMarkerInfo(comment!!)
+        assertNotNull("Should find marker with two parameters", marker)
+        assertNotNull("Marker should have an icon", marker!!.icon)
+    }
+
+    fun testHandleWhitespaceInTwoParameterMarker() {
+        // Create a test file with whitespace in two-parameter marker
+        val javaFile = myFixture.addFileToProject(
+            "Example.java",
+            """
+                // #COMPARE:  /src/file.java  ,  /dst/file.java
+                public class Example {}
+            """.trimIndent()
+        )
+
+        // Create both destination files
+        myFixture.addFileToProject("src/file.java", "public class SrcFile {}")
+        myFixture.addFileToProject("dst/file.java", "public class DstFile {}")
+
+        // Find the comment
+        val comment = PsiTreeUtil.findChildOfType(javaFile, PsiComment::class.java)
+        assertNotNull("Comment should be found", comment)
+
+        // Get the marker - whitespace should be trimmed correctly
+        val marker = markerProvider.getLineMarkerInfo(comment!!)
+        assertNotNull("Should handle whitespace in two-parameter format", marker)
+        assertNotNull("Marker should have an icon", marker!!.icon)
+    }
 }

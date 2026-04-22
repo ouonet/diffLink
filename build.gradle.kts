@@ -118,6 +118,7 @@ tasks {
     patchPluginXml {
         version.set(requiredProp("pluginVersion"))
         sinceBuild.set(requiredProp("pluginSinceBuild"))
+        untilBuild.set(provider { "" })
         changeNotes.set(provider {
             renderChangeNotes(project.file("CHANGELOG.md"), requiredProp("pluginVersion"))
         })

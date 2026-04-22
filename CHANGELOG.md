@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.2] - 2026-04-22
+
+### Fixed
+- Removed `until-build` upper bound so the plugin is compatible with IntelliJ IDEA 2023.2 and all later versions (including 2025.2+).
+
 ## [1.0.1] - 2026-04-22
 
 ### Changed

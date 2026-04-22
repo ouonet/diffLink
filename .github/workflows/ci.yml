@@ -58,7 +58,7 @@ jobs:
       - name: Cache Plugin Verifier IDEs
         uses: actions/cache@v4
         with:
-          path: ~/.pluginVerifier/ides
+          path: ~/.cache/pluginVerifier
           key: ${{ runner.os }}-plugin-verifier-ides-v1-${{ env.VERIFIER_IDE_VERSIONS }}
           restore-keys: |
             ${{ runner.os }}-plugin-verifier-ides-v1-

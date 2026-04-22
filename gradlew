@@ -164,9 +164,9 @@ set -- \
         org.gradle.wrapper.GradleWrapperMain \
         "$@"
 
-# Stop when "xargs" should not be instanced further in recursive property expansion.
-set +e
-set +u
+# Collect all arguments for the java command:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS can contain shell fragments and quotes.
+#   * Re-parse them with xargs to preserve intended splitting in POSIX sh.
+eval "set -- $(printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" | xargs -n1 | sed 's~[^-[:alnum:]+,./:=@_]~\\&~g' | tr '\n' ' ')" '"$@"'
 
-# Run the Gradle wrapper
-exec "$JAVACMD" "${JVM_OPTS[@]}" "$@"
+exec "$JAVACMD" "$@"

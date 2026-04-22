@@ -15,6 +15,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
 }
@@ -28,6 +29,7 @@ intellij {
 
 tasks {
     test {
-        useJUnitPlatform()
+        useJUnit()
+        // Use JUnit4 for IDE fixture tests that extend LightJavaCodeInsightFixtureTestCase
     }
 }

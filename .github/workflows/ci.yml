@@ -7,6 +7,10 @@ on:
       - master
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,6 +39,8 @@ jobs:
 
   verify:
     runs-on: ubuntu-latest
+    env:
+      VERIFIER_IDE_VERSIONS: ${{ github.event_name == 'pull_request' && 'IC-252.26830.84' || 'IC-232.9559.62,IC-252.26830.84' }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -49,8 +55,14 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Cache Plugin Verifier IDEs
+        uses: actions/cache@v4
+        with:
+          path: ~/.pluginVerifier/ides
+          key: ${{ runner.os }}-plugin-verifier-ides-v1-${{ env.VERIFIER_IDE_VERSIONS }}
+          restore-keys: |
+            ${{ runner.os }}-plugin-verifier-ides-v1-
+
       - name: Run Plugin Verifier
-        run: |
-          ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IC-232.9559.62,IC-252.26830.84
-          ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
+        run: ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=${VERIFIER_IDE_VERSIONS}
 

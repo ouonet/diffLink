@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1] - 2026-04-22
+
+### Changed
+- Expanded plugin description metadata for Marketplace with richer usage details.
+- Embedded public screenshot URLs in plugin description so local ZIP installs can preview images.
+- Bumped plugin version to 1.0.1 for republishing.
+
 ## [1.0.0] - 2026-04-22
 
 ### Added

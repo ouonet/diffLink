@@ -28,6 +28,8 @@ Thumbs.db
 *.swo
 *~
 
+.serena
+
 # Kotlin
 *.kt.bak
 docs/superpowers

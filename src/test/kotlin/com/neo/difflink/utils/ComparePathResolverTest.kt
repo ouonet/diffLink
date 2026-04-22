@@ -1,7 +1,6 @@
-package com.lianggong.difflink.utils
+package com.neo.difflink.utils
 
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.junit.Assert.*
 
 class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
 

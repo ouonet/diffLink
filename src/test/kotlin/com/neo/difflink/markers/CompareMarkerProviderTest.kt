@@ -1,10 +1,9 @@
-package com.lianggong.difflink.markers
+package com.neo.difflink.markers
 
-import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.junit.Assert.*
 
 class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
 
@@ -21,7 +20,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #DiffLink: /TestFile.java
+                    // @DiffLink: /TestFile.java
                     public void method() {
                     }
                 }
@@ -47,11 +46,11 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #DiffLink: /File1.java
+                    // @DiffLink: /File1.java
                     public void method1() {
                     }
 
-                    // #DiffLink: /File2.java
+                    // @DiffLink: /File2.java
                     public void method2() {
                     }
                 }
@@ -105,7 +104,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #DiffLink: /NonExistent.java
+                    // @DiffLink: /NonExistent.java
                     public void method() {
                     }
                 }
@@ -130,7 +129,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    /* #DiffLink: /TestFile.java */
+                    /* @DiffLink: /TestFile.java */
                     public void method() {
                     }
                 }
@@ -162,7 +161,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #DiffLink:   /TestFile.java
+                    // @DiffLink:   /TestFile.java
                     public void method() {
                     }
                 }
@@ -187,7 +186,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Example.java",
             """
-                // #DiffLink: /path/to/file.java
+                // @DiffLink: /path/to/file.java
                 public class Example {}
             """.trimIndent()
         )
@@ -210,7 +209,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val pythonFile = myFixture.addFileToProject(
             "example.py",
             """
-                # #DiffLink: /path/to/other.py
+                # @DiffLink: /path/to/other.py
                 def hello():
                     pass
             """.trimIndent()
@@ -240,7 +239,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "example.md",
             """
                 # Documentation
-                #DiffLink: /old/doc.md, /new/doc.md
+                @DiffLink: /old/doc.md, /new/doc.md
                 Some content
             """.trimIndent()
         )
@@ -251,11 +250,11 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         // For text files in the IDE test environment, marker detection may be limited
         // due to the test environment not fully supporting all file type languages
         // Just verify the function executes without errors
-        val allElements = PsiTreeUtil.findChildrenOfType(markdownFile, com.intellij.psi.PsiElement::class.java)
+        val allElements = PsiTreeUtil.findChildrenOfType(markdownFile, PsiElement::class.java)
         var processedElements = 0
         for (element in allElements) {
             val text = element.text
-            if (text.contains("#DiffLink:")) {
+            if (text.contains("@DiffLink:")) {
                 processedElements++
                 markerProvider.getLineMarkerInfo(element)
                 // Marker may or may not be created depending on file type support
@@ -269,7 +268,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Current.java",
             """
-                // #DiffLink:/reference/File.java
+                // @DiffLink:/reference/File.java
                 public class Current {}
             """.trimIndent()
         )
@@ -292,7 +291,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Version1.java",
             """
-                // #DiffLink:/version1/File.java, /version2/File.java
+                // @DiffLink:/version1/File.java, /version2/File.java
                 public class Version1 {}
             """.trimIndent()
         )
@@ -316,7 +315,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Example.java",
             """
-                // #DiffLink:  /src/file.java  ,  /dst/file.java
+                // @DiffLink:  /src/file.java  ,  /dst/file.java
                 public class Example {}
             """.trimIndent()
         )

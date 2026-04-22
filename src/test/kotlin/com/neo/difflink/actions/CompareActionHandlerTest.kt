@@ -1,10 +1,9 @@
-package com.lianggong.difflink.actions
+package com.neo.difflink.actions
 
 import com.intellij.diff.DiffManager
 import com.intellij.diff.requests.DiffRequest
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.junit.Assert.*
 import org.mockito.Mockito.*
 
 class CompareActionHandlerTest : LightJavaCodeInsightFixtureTestCase() {

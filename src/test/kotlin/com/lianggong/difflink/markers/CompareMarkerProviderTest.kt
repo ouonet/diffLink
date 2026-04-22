@@ -21,7 +21,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #COMPARE: /TestFile.java
+                    // #DiffLink: /TestFile.java
                     public void method() {
                     }
                 }
@@ -47,11 +47,11 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #COMPARE: /File1.java
+                    // #DiffLink: /File1.java
                     public void method1() {
                     }
 
-                    // #COMPARE: /File2.java
+                    // #DiffLink: /File2.java
                     public void method2() {
                     }
                 }
@@ -105,7 +105,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #COMPARE: /NonExistent.java
+                    // #DiffLink: /NonExistent.java
                     public void method() {
                     }
                 }
@@ -130,7 +130,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    /* #COMPARE: /TestFile.java */
+                    /* #DiffLink: /TestFile.java */
                     public void method() {
                     }
                 }
@@ -162,7 +162,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "Test.java",
             """
                 public class Test {
-                    // #COMPARE:   /TestFile.java
+                    // #DiffLink:   /TestFile.java
                     public void method() {
                     }
                 }
@@ -187,7 +187,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Example.java",
             """
-                // #COMPARE: /path/to/file.java
+                // #DiffLink: /path/to/file.java
                 public class Example {}
             """.trimIndent()
         )
@@ -210,7 +210,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val pythonFile = myFixture.addFileToProject(
             "example.py",
             """
-                # #COMPARE: /path/to/other.py
+                # #DiffLink: /path/to/other.py
                 def hello():
                     pass
             """.trimIndent()
@@ -240,7 +240,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
             "example.md",
             """
                 # Documentation
-                #COMPARE: /old/doc.md, /new/doc.md
+                #DiffLink: /old/doc.md, /new/doc.md
                 Some content
             """.trimIndent()
         )
@@ -255,7 +255,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         var processedElements = 0
         for (element in allElements) {
             val text = element.text
-            if (text.contains("#COMPARE:")) {
+            if (text.contains("#DiffLink:")) {
                 processedElements++
                 markerProvider.getLineMarkerInfo(element)
                 // Marker may or may not be created depending on file type support
@@ -269,7 +269,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Current.java",
             """
-                // #COMPARE:/reference/File.java
+                // #DiffLink:/reference/File.java
                 public class Current {}
             """.trimIndent()
         )
@@ -292,7 +292,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Version1.java",
             """
-                // #COMPARE:/version1/File.java, /version2/File.java
+                // #DiffLink:/version1/File.java, /version2/File.java
                 public class Version1 {}
             """.trimIndent()
         )
@@ -316,7 +316,7 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         val javaFile = myFixture.addFileToProject(
             "Example.java",
             """
-                // #COMPARE:  /src/file.java  ,  /dst/file.java
+                // #DiffLink:  /src/file.java  ,  /dst/file.java
                 public class Example {}
             """.trimIndent()
         )

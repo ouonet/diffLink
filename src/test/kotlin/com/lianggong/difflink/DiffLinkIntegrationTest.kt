@@ -21,20 +21,20 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
     }
 
     /**
-     * Test 1: End-to-end workflow with a single file containing one #COMPARE comment.
+     * Test 1: End-to-end workflow with a single file containing one # DiffLink comment.
      * Verifies that:
-     * - A source file with a #COMPARE comment is created
+     * - A source file with a # DiffLink comment is created
      * - A destination file is created
      * - The CompareMarkerProvider detects the comment
      * - A valid marker is created (not an error marker)
      */
     fun testEndToEndWorkflow() {
-        // Step 1: Create source file with a single #COMPARE comment
+        // Step 1: Create source file with a single # DiffLink comment
         val sourceFile = myFixture.addFileToProject(
             "SourceFile.java",
             """
                 public class SourceFile {
-                    // #COMPARE: /DestinationFile.java
+                    // #DiffLink: /DestinationFile.java
                     public void sourceMethod() {
                         System.out.println("Source implementation");
                     }
@@ -58,7 +58,7 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
         assertNotNull("Source file should be created", sourceFile)
         assertNotNull("Destination file should be created", destinationFile)
 
-        // Step 3: Find the #COMPARE comment in the source file
+        // Step 3: Find the # DiffLink comment in the source file
         val comment = PsiTreeUtil.findChildOfType(sourceFile, PsiComment::class.java)
         assertNotNull("Comment should be found in source file", comment)
 
@@ -83,30 +83,30 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
     }
 
     /**
-     * Test 2: Multiple files with different #COMPARE comments.
+     * Test 2: Multiple files with different # DiffLink comments.
      * Verifies that:
-     * - A file with 3 different #COMPARE comments is created
+     * - A file with 3 different # DiffLink comments is created
      * - All 3 destination files are created
      * - CompareMarkerProvider detects all 3 comments
      * - All 3 comments generate valid (non-error) markers
      */
     fun testMultipleFilesWithCompareComments() {
-        // Step 1: Create source file with 3 #COMPARE comments
+        // Step 1: Create source file with 3 # DiffLink comments
         val sourceFile = myFixture.addFileToProject(
             "MultiCompareSource.java",
             """
                 public class MultiCompareSource {
-                    // #COMPARE: /FirstTarget.java
+                    // #DiffLink: /FirstTarget.java
                     public void firstMethod() {
                         System.out.println("First comparison");
                     }
 
-                    // #COMPARE: /SecondTarget.java
+                    // #DiffLink: /SecondTarget.java
                     public void secondMethod() {
                         System.out.println("Second comparison");
                     }
 
-                    // #COMPARE: /ThirdTarget.java
+                    // #DiffLink: /ThirdTarget.java
                     public void thirdMethod() {
                         System.out.println("Third comparison");
                     }
@@ -133,7 +133,7 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
         assertNotNull("Second target should be created", secondTarget)
         assertNotNull("Third target should be created", thirdTarget)
 
-        // Step 3: Find all #COMPARE comments in source file
+        // Step 3: Find all # DiffLink comments in source file
         val comments = PsiTreeUtil.findChildrenOfType(sourceFile, PsiComment::class.java)
         assertEquals("Should find exactly 3 comments", 3, comments.size)
 
@@ -163,18 +163,18 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
     /**
      * Test 3: Error handling for missing destination file.
      * Verifies that:
-     * - A source file with a #COMPARE comment pointing to non-existent file is created
+     * - A source file with a # DiffLink comment pointing to non-existent file is created
      * - CompareMarkerProvider detects the invalid comment
      * - An error marker is created (not a valid marker)
      * - The error marker has the Error icon
      */
     fun testErrorHandlingForMissingDestination() {
-        // Step 1: Create source file with #COMPARE comment pointing to missing file
+        // Step 1: Create source file with # DiffLink comment pointing to missing file
         val sourceFile = myFixture.addFileToProject(
             "SourceWithBadPath.java",
             """
                 public class SourceWithBadPath {
-                    // #COMPARE: /NonExistentTarget.java
+                    // #DiffLink: /NonExistentTarget.java
                     public void methodWithBadReference() {
                         System.out.println("This points to missing file");
                     }
@@ -187,7 +187,7 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
 
         // Note: We deliberately do NOT create the destination file to simulate an error
 
-        // Step 2: Find the #COMPARE comment in the source file
+        // Step 2: Find the # DiffLink comment in the source file
         val comment = PsiTreeUtil.findChildOfType(sourceFile, PsiComment::class.java)
         assertNotNull("Comment should be found in source file", comment)
 

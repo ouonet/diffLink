@@ -51,6 +51,6 @@ jobs:
 
       - name: Run Plugin Verifier
         run: |
-          ./gradlew --no-daemon runPluginVerifier
+          ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IC-232.9559.62,IC-252.26830.84
           ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
 

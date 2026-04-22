@@ -50,5 +50,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run Plugin Verifier
-        run: ./gradlew --no-daemon runPluginVerifier
+        run: |
+          ./gradlew --no-daemon runPluginVerifier
+          ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
 

@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - '*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -29,5 +29,9 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
-        run: ./gradlew --no-daemon test buildPlugin runPluginVerifier signPlugin publishPlugin
+        run: |
+          ./gradlew --no-daemon test buildPlugin
+          ./gradlew --no-daemon runPluginVerifier
+          ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
+          ./gradlew --no-daemon signPlugin publishPlugin
 

@@ -11,6 +11,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -28,6 +32,14 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Cache Plugin Verifier IDEs
+        uses: actions/cache@v4
+        with:
+          path: ~/.pluginVerifier/ides
+          key: ${{ runner.os }}-plugin-verifier-ides-v1-IC-232.9559.62-IC-252.26830.84-IU-252.26830.84
+          restore-keys: |
+            ${{ runner.os }}-plugin-verifier-ides-v1-
+
       - name: Test, verify, sign, and publish
         env:
           RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.version }}
@@ -43,8 +55,8 @@ jobs:
           fi
           echo "Publishing plugin version: ${VERSION}"
 
-          ./gradlew --no-daemon test buildPlugin -PpluginVersion="${VERSION}"
-          ./gradlew --no-daemon runPluginVerifier -PpluginVersion="${VERSION}" -PpluginVerifierIdeVersions=IC-232.9559.62,IC-252.26830.84
-          ./gradlew --no-daemon runPluginVerifier -PpluginVersion="${VERSION}" -PpluginVerifierIdeVersions=IU-252.26830.84
-          ./gradlew --no-daemon signPlugin publishPlugin -PpluginVersion="${VERSION}"
+          ./gradlew --no-daemon \
+            test buildPlugin runPluginVerifier signPlugin publishPlugin \
+            -PpluginVersion="${VERSION}" \
+            -PpluginVerifierIdeVersions=IC-232.9559.62,IC-252.26830.84,IU-252.26830.84
 

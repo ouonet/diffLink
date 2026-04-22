@@ -18,6 +18,17 @@ class CompareMarkerProvider : LineMarkerProvider {
     private val pathResolver = ComparePathResolver()
     private val comparePattern = Regex("""#COMPARE:\s*(.+)""")
 
+    private fun isLanguageAwareFile(file: PsiFile): Boolean {
+        // Check if the file has associated language support
+        // Language.ANY or null means no language support
+        val language = file.language
+        return language != com.intellij.lang.Language.ANY && language != null
+    }
+
+    private fun isInComment(element: PsiElement): Boolean {
+        return element is PsiComment
+    }
+
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         // Only process comments
         if (element !is PsiComment) {

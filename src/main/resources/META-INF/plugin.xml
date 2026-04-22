@@ -6,19 +6,16 @@
     </vendor>
 
     <description><![CDATA[
-        Navigate and compare files during refactoring using #COMPARE comments.
-        Mark code with #COMPARE:/path/to/file.java comments, and click the gutter icon
-        to instantly compare with the destination file using IntelliJ's diff viewer.
+        Navigate and compare files during refactoring using #COMPARE markers. Mark any text file with #COMPARE:/path/to/file or #COMPARE:/src, /dst markers, and click the gutter icon to instantly compare files using IntelliJ's diff viewer. Works with Java, Python, Kotlin, JavaScript, Markdown, configuration files, and more.
     ]]></description>
 
     <version>0.0.1</version>
     <idea-version since-build="232" />
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
+        <codeInsight.lineMarkerProvider implementationClass="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
         <notificationGroup id="Compare Navigator" displayType="BALLOON" />
     </extensions>
 

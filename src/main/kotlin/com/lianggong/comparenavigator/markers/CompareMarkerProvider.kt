@@ -16,7 +16,25 @@ import javax.swing.Icon
 class CompareMarkerProvider : LineMarkerProvider {
 
     private val pathResolver = ComparePathResolver()
-    private val comparePattern = Regex("""#COMPARE:\s*(.+)""")
+    private val comparePattern = Regex("""#COMPARE:\s*(.+?)(?:,\s*(.+))?""")
+
+    data class MarkerParams(
+        val source: String,
+        val destination: String
+    )
+
+    private fun parseMarkerParams(match: MatchResult): MarkerParams {
+        val firstParam = match.groupValues[1].trim()
+        val secondParam = match.groupValues[2].takeIf { it.isNotEmpty() }?.trim()
+
+        return if (secondParam != null) {
+            // Two parameters: source and destination explicitly specified
+            MarkerParams(source = firstParam, destination = secondParam)
+        } else {
+            // Single parameter: current file is source, parameter is destination
+            MarkerParams(source = "", destination = firstParam)
+        }
+    }
 
     private fun isLanguageAwareFile(file: PsiFile): Boolean {
         // Check if the file has associated language support

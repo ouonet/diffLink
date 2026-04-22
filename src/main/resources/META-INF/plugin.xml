@@ -4,14 +4,33 @@
     <vendor>neo</vendor>
 
     <description><![CDATA[
-         <p>Open file comparisons directly from editor comments with <code>@DiffLink</code>.</p>
-        <p>Add <code>@DiffLink:path/to/file</code> or <code>@DiffLink:source, destination</code>, then click the gutter icon
-        to launch IntelliJ IDEA's built-in diff viewer.</p>
+        <p>DiffLink opens file comparisons directly from inline <code>@DiffLink</code> markers.</p>
+        <p>Add <code>@DiffLink:path/to/file</code> or <code>@DiffLink:source, destination</code> in a comment or plain-text line, then click the gutter icon to launch IntelliJ IDEA's built-in diff viewer.</p>
+        <p>DiffLink is designed for refactoring and migration workflows where you frequently compare old and new implementations.</p>
+
+        <h3>Highlights</h3>
+        <ul>
+            <li>One-click diff from editor gutter markers</li>
+            <li>Single-target and explicit two-file compare formats</li>
+            <li>Works across common text-based files (Java, Kotlin, Python, JavaScript, Markdown, XML, shell, config)</li>
+            <li>Clear error markers for missing or invalid paths</li>
+            <li>Local-only behavior: no source upload, no remote diff processing</li>
+        </ul>
+
+        <h3>Marker examples</h3>
+        <pre><code>@DiffLink:src/main/java/legacy/OldImplementation.java
+@DiffLink:/Users/me/project/v1/File.kt, /Users/me/project/v2/File.kt</code></pre>
+
+        <h3>Screenshots</h3>
+        <p><img src="https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/01-marker-in-editor.png" alt="Marker in editor with gutter icon" width="600"/></p>
+        <p><img src="https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/02-diff-viewer-result.png" alt="Diff viewer result" width="600"/></p>
+        <p><img src="https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/03-invalid-path-feedback.png" alt="Invalid path feedback" width="600"/></p>
+
         <p><b>Compatibility:</b> IntelliJ IDEA Community and Ultimate, build 232+ (2023.2.1 and later).</p>
         <p><b>Privacy:</b> local-only processing. DiffLink does not upload source code or diff content.</p>
     ]]></description>
 
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <idea-version since-build="232" />
     <change-notes><![CDATA[
         <p>Initial release.</p>

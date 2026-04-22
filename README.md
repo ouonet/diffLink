@@ -8,7 +8,8 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 - **Gutter Icons**: Click icons in the editor gutter to instantly open file comparisons
 - **Built-in Diff Viewer**: Uses IntelliJ's native diff viewer for seamless integration
 - **Error Handling**: Visual feedback (error icons) for missing or invalid file paths
-- **Java Support**: Optimized for Java files (initial release)
+- **Multi-Language Support**: Works with Java, Python, Kotlin, JavaScript, Markdown, config files, and all text file types
+- **Two-Parameter Markers**: Compare explicit source and destination files: `#COMPARE:/src, /dst`
 
 ## Installation
 
@@ -51,6 +52,32 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 - Supports absolute project paths: `/src/main/java/Example.java`
 - Whitespace is trimmed automatically: `#COMPARE:  /path/to/file  ` works fine
 
+### Two-Parameter Syntax
+
+In addition to comparing the current file with a destination, you can explicitly specify both source and destination files:
+
+**Single Parameter (existing):**
+```
+#COMPARE:/path/to/destination/file
+```
+Compares the current file with the specified destination.
+
+**Two Parameters (new):**
+```
+#COMPARE:/path/to/source/file, /path/to/destination/file
+#COMPARE:  /v1/file.py  ,  /v2/file.py   (whitespace is trimmed)
+```
+Compares two explicitly specified files.
+
+**Examples:**
+```java
+// Compare different versions of the same file
+// #COMPARE:/implementation/v1.java, /implementation/v2.java
+
+// Compare original with refactored version
+// #COMPARE:/old/CodeSample.java, /new/CodeSample.java
+```
+
 ### Valid Examples
 
 ```java
@@ -66,6 +93,60 @@ public class MyClass {
     // #COMPARE:/version2/Implementation.java
     public void method() {}
 }
+```
+
+### Multi-Language Examples
+
+The plugin works with any text file type. Here are examples for different languages:
+
+**Java:**
+```java
+// Single parameter - compares current file with destination
+// #COMPARE:/old/Implementation.java
+
+// Two parameters - compares two explicit files
+// #COMPARE:/v1/Implementation.java, /v2/Implementation.java
+```
+
+**Python:**
+```python
+# #COMPARE:/version1/script.py, /version2/script.py
+def process():
+    pass
+```
+
+**Kotlin:**
+```kotlin
+// #COMPARE:/src/main/kotlin/OldClass.kt, /src/main/kotlin/NewClass.kt
+class MyClass {}
+```
+
+**JavaScript:**
+```javascript
+// #COMPARE:/src/utils/old.js, /src/utils/new.js
+function helper() {}
+```
+
+**Markdown/Documentation:**
+```markdown
+#COMPARE:/docs/old-guide.md, /docs/new-guide.md
+
+This document was updated in the new version.
+```
+
+**XML/Configuration:**
+```xml
+<!-- #COMPARE:/config/prod.xml, /config/dev.xml -->
+<configuration>
+    <!-- Your config -->
+</configuration>
+```
+
+**Bash/Shell:**
+```bash
+#!/bin/bash
+# #COMPARE:/scripts/v1/deploy.sh, /scripts/v2/deploy.sh
+echo "Deploy script"
 ```
 
 ### Error Handling
@@ -224,7 +305,6 @@ Uses IntelliJ's built-in `DiffManager` API:
 
 ## Future Enhancements
 
-- Support for additional file types (Python, Go, JavaScript, etc.)
 - Custom comparison options (ignore whitespace, specific sections)
 - Quick action to generate `#COMPARE:` comments
 - Integration with version control (Git history comparison)
@@ -254,4 +334,4 @@ For issues, questions, or suggestions, please open an issue in the repository.
 **Version**: 0.0.1  
 **IDE Compatibility**: IntelliJ IDEA 2023.1+  
 **Kotlin**: 1.9.20  
-**Last Updated**: April 2026
+**Last Updated**: 2026-04-22

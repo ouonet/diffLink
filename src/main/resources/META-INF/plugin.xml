@@ -6,7 +6,7 @@
     </vendor>
 
     <description><![CDATA[
-        Navigate and compare files during refactoring using #COMPARE markers. Mark any text file with #COMPARE:/path/to/file or #COMPARE:/src, /dst markers, and click the gutter icon to instantly compare files using IntelliJ's diff viewer. Works with Java, Python, Kotlin, JavaScript, Markdown, configuration files, and more.
+        Navigate and compare files during refactoring using #DiffLink markers. Mark any text file with #DiffLink:/path/to/file or #DiffLink:/src, /dst markers, and click the gutter icon to instantly compare files using IntelliJ's diff viewer. Works with Java, Python, Kotlin, JavaScript, Markdown, configuration files, and more.
     ]]></description>
 
     <version>0.0.1</version>

@@ -4,12 +4,12 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 
 ## Features
 
-- **Quick File Comparison**: Mark code sections with `#COMPARE:/path/to/file.java` comments
+- **Quick File Comparison**: Mark code sections with `#DiffLink:/path/to/file.java` comments
 - **Gutter Icons**: Click icons in the editor gutter to instantly open file comparisons
 - **Built-in Diff Viewer**: Uses IntelliJ's native diff viewer for seamless integration
 - **Error Handling**: Visual feedback (error icons) for missing or invalid file paths
 - **Multi-Language Support**: Works with Java, Python, Kotlin, JavaScript, Markdown, config files, and all text file types
-- **Two-Parameter Markers**: Compare explicit source and destination files: `#COMPARE:/src, /dst`
+- **Two-Parameter Markers**: Compare explicit source and destination files: `#DiffLink:/src, /dst`
 
 ## Installation
 
@@ -30,7 +30,7 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 
 1. **Mark Files to Compare**: Add a comment in your Java code:
    ```java
-   // #COMPARE:/src/main/java/OldImplementation.java
+   // #DiffLink:/src/main/java/OldImplementation.java
    public class NewImplementation {
        // Your new implementation
    }
@@ -43,14 +43,14 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
 ### Comment Format
 
 ```
-#COMPARE:/path/to/destination/file.java
+#DiffLink:/path/to/destination/file.java
 ```
 
 **Path Rules:**
 - Paths are relative to the project root
 - Must start with `/` (or it will be normalized to start with `/`)
 - Supports absolute project paths: `/src/main/java/Example.java`
-- Whitespace is trimmed automatically: `#COMPARE:  /path/to/file  ` works fine
+- Whitespace is trimmed automatically: `#DiffLink:  /path/to/file  ` works fine
 
 ### Two-Parameter Syntax
 
@@ -58,39 +58,39 @@ In addition to comparing the current file with a destination, you can explicitly
 
 **Single Parameter (existing):**
 ```
-#COMPARE:/path/to/destination/file
+#DiffLink:/path/to/destination/file
 ```
 Compares the current file with the specified destination.
 
 **Two Parameters (new):**
 ```
-#COMPARE:/path/to/source/file, /path/to/destination/file
-#COMPARE:  /v1/file.py  ,  /v2/file.py   (whitespace is trimmed)
+#DiffLink:/path/to/source/file, /path/to/destination/file
+#DiffLink:  /v1/file.py  ,  /v2/file.py   (whitespace is trimmed)
 ```
 Compares two explicitly specified files.
 
 **Examples:**
 ```java
 // Compare different versions of the same file
-// #COMPARE:/implementation/v1.java, /implementation/v2.java
+// #DiffLink:/implementation/v1.java, /implementation/v2.java
 
 // Compare original with refactored version
-// #COMPARE:/old/CodeSample.java, /new/CodeSample.java
+// #DiffLink:/old/CodeSample.java, /new/CodeSample.java
 ```
 
 ### Valid Examples
 
 ```java
 // Single line comment
-// #COMPARE:/src/main/java/OldVersion.java
+// #DiffLink:/src/main/java/OldVersion.java
 
 /* Block comment style */
-/* #COMPARE:/src/test/java/TestCase.java */
+/* #DiffLink:/src/test/java/TestCase.java */
 
 // Multiple comments in same file
-// #COMPARE:/version1/Implementation.java
+// #DiffLink:/version1/Implementation.java
 public class MyClass {
-    // #COMPARE:/version2/Implementation.java
+    // #DiffLink:/version2/Implementation.java
     public void method() {}
 }
 ```
@@ -102,41 +102,41 @@ The plugin works with any text file type. Here are examples for different langua
 **Java:**
 ```java
 // Single parameter - compares current file with destination
-// #COMPARE:/old/Implementation.java
+// #DiffLink:/old/Implementation.java
 
 // Two parameters - compares two explicit files
-// #COMPARE:/v1/Implementation.java, /v2/Implementation.java
+// #DiffLink:/v1/Implementation.java, /v2/Implementation.java
 ```
 
 **Python:**
 ```python
-# #COMPARE:/version1/script.py, /version2/script.py
+# #DiffLink:/version1/script.py, /version2/script.py
 def process():
     pass
 ```
 
 **Kotlin:**
 ```kotlin
-// #COMPARE:/src/main/kotlin/OldClass.kt, /src/main/kotlin/NewClass.kt
+// #DiffLink:/src/main/kotlin/OldClass.kt, /src/main/kotlin/NewClass.kt
 class MyClass {}
 ```
 
 **JavaScript:**
 ```javascript
-// #COMPARE:/src/utils/old.js, /src/utils/new.js
+// #DiffLink:/src/utils/old.js, /src/utils/new.js
 function helper() {}
 ```
 
 **Markdown/Documentation:**
 ```markdown
-#COMPARE:/docs/old-guide.md, /docs/new-guide.md
+#DiffLink:/docs/old-guide.md, /docs/new-guide.md
 
 This document was updated in the new version.
 ```
 
 **XML/Configuration:**
 ```xml
-<!-- #COMPARE:/config/prod.xml, /config/dev.xml -->
+<!-- #DiffLink:/config/prod.xml, /config/dev.xml -->
 <configuration>
     <!-- Your config -->
 </configuration>
@@ -145,7 +145,7 @@ This document was updated in the new version.
 **Bash/Shell:**
 ```bash
 #!/bin/bash
-# #COMPARE:/scripts/v1/deploy.sh, /scripts/v2/deploy.sh
+# #DiffLink:/scripts/v1/deploy.sh, /scripts/v2/deploy.sh
 echo "Deploy script"
 ```
 
@@ -191,7 +191,7 @@ difflink/
 **Core Components:**
 
 1. **CompareMarkerProvider** (LineMarkerProvider)
-   - Scans Java files for `#COMPARE:` comments
+   - Scans Java files for `#DiffLink:` comments
    - Creates clickable gutter icons for valid references
    - Shows error icons for invalid paths
 
@@ -277,7 +277,7 @@ The plugin resolves paths relative to the project root:
 
 ```
 Project Root: /path/to/my/project/
-Comment: #COMPARE:/src/main/java/Old.java
+Comment: #DiffLink:/src/main/java/Old.java
 Resolved to: /path/to/my/project/src/main/java/Old.java
 ```
 
@@ -306,7 +306,7 @@ Uses IntelliJ's built-in `DiffManager` API:
 ## Future Enhancements
 
 - Custom comparison options (ignore whitespace, specific sections)
-- Quick action to generate `#COMPARE:` comments
+- Quick action to generate `#DiffLink:` comments
 - Integration with version control (Git history comparison)
 - Smart path suggestions/autocomplete
 

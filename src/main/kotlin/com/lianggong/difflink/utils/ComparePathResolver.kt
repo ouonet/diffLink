@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFileManager
 
 /**
- * Resolves and validates file paths from #COMPARE comments.
+ * Resolves and validates file paths from #DiffLink comments.
  * Paths are resolved relative to the project root.
  */
 class ComparePathResolver {

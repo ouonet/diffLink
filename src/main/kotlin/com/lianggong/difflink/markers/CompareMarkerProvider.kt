@@ -16,7 +16,7 @@ import javax.swing.Icon
 class CompareMarkerProvider : LineMarkerProvider {
 
     private val pathResolver = ComparePathResolver()
-    private val comparePattern = Regex("""#COMPARE:\s*(.+?)(?:,\s*(.+))?""")
+    private val comparePattern = Regex("""#DiffLink:\s*(.+?)(?:,\s*(.+))?""")
 
     data class MarkerParams(
         val source: String,

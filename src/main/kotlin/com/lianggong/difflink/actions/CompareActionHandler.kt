@@ -9,7 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * Handles opening the diff viewer when a #COMPARE marker is clicked.
+ * Handles opening the diff viewer when a #DiffLink marker is clicked.
  */
 class CompareActionHandler : AnAction() {
 

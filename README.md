@@ -1,25 +1,13 @@
 # DiffLink
 
-DiffLink is an IntelliJ IDEA plugin that opens file comparisons directly from `@DiffLink` markers in source files, plain text, and documentation.
+DiffLink lets you open IntelliJ's diff viewer from an inline `@DiffLink` marker.
+It is built for refactoring and migration workflows where you need to compare old and new files quickly without leaving the editor.
 
-## Highlights
+## Quick start (30 seconds)
 
-- Compare the current file against another file with a single marker
-- Compare two explicit files with a two-argument marker
-- Open IntelliJ IDEA's built-in diff viewer from the gutter
-- Show clear error markers for invalid or missing paths
-- Work across common text-based formats including Java, Kotlin, Python, JavaScript, Markdown, XML, shell, and config files
-
-## Compatibility
-
-- **Target IDEs:** IntelliJ IDEA Community and Ultimate
-- **Verified baseline:** 2023.2.1
-- **Marketplace build range:** `232` to `232.*`
-- **JDK for builds/tests:** 17
-
-## Usage
-
-### Single target
+1. Add a marker to a comment or plain-text line.
+2. Click the gutter icon next to the marker.
+3. Review the comparison in IntelliJ's built-in diff viewer.
 
 ```java
 // @DiffLink:src/main/java/legacy/OldImplementation.java
@@ -27,45 +15,67 @@ public class NewImplementation {
 }
 ```
 
-This compares the current file against the target path.
-
-### Explicit source and destination
+### Two-file compare
 
 ```kotlin
 // @DiffLink:/Users/me/project/v1/Feature.kt, /Users/me/project/v2/Feature.kt
 class Feature
 ```
 
-This compares the two explicit paths instead of using the current file as the source.
+## Compatibility
 
-### Path rules
+- **IDE products:** IntelliJ IDEA Community and Ultimate
+- **Minimum build:** `232` (IntelliJ IDEA 2023.2.1)
+- **Upper build limit:** none (`since-build="232"`, no `until-build`)
+- **Current verifier targets:** `IC-232.9559.62` and `IU-252.26830.84`
 
-- Relative paths are resolved from the current project root
-- Absolute paths are used as filesystem paths
-- Leading and trailing whitespace is trimmed
-- Path traversal (`..`, `~`) and external URLs are rejected
+## Marker format
 
-## Local development
+- Single target: `@DiffLink:path/to/file`
+- Explicit source + destination: `@DiffLink:source/path, destination/path`
+
+Path behavior:
+- Relative paths resolve from project root.
+- Absolute paths are treated as filesystem paths.
+- Leading and trailing whitespace is trimmed.
+- Unsafe path traversal (`..`, `~`) and external URLs are rejected.
+
+## FAQ
+
+### Why does install fail with a build compatibility error?
+
+This plugin now publishes with `since-build="232"` and no upper cap.
+If you still see a `232.*` compatibility error, you are likely installing an older ZIP build.
+Rebuild or download the latest artifact.
+
+### Does this plugin send code or file content to external services?
+
+No. DiffLink resolves local paths and opens IntelliJ's local diff viewer.
+It does not include telemetry or remote content upload.
+
+### Which file types are supported?
+
+Any text-based file where `@DiffLink` can be detected, including Java, Kotlin, Python, JavaScript, Markdown, XML, shell scripts, and config files.
+
+## Local validation
 
 ```bash
-./gradlew test
-./gradlew buildPlugin
-./gradlew runPluginVerifier
+./gradlew --no-daemon test
+./gradlew --no-daemon buildPlugin
+./gradlew --no-daemon runPluginVerifier
+./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
 ```
 
-The distributable ZIP is generated under `build/distributions/`.
+The plugin ZIP is generated in `build/distributions/`.
 
 ## Release workflow
 
-The Gradle build is wired for Marketplace publication:
+- `patchPluginXml` injects version, since-build, and release notes from `CHANGELOG.md`.
+- `signPlugin` uses Marketplace signing secrets.
+- `publishPlugin` uploads to JetBrains Marketplace.
+- CI and release jobs live in `.github/workflows/`.
 
-- `patchPluginXml` injects version and compatibility metadata
-- `runPluginVerifier` checks Community and Ultimate IDE targets
-- `signPlugin` reads signing credentials from environment variables
-- `publishPlugin` reads the Marketplace token from environment variables
-- GitHub Actions workflows in `.github/workflows/` run CI and tagged releases
-
-### Required environment variables
+Required environment variables:
 
 ```bash
 export CERTIFICATE_CHAIN='-----BEGIN CERTIFICATE-----...'
@@ -74,32 +84,26 @@ export PRIVATE_KEY_PASSWORD='your-password'
 export PUBLISH_TOKEN='your-marketplace-token'
 ```
 
-### Manual publication
+## Marketplace assets and copy
 
-```bash
-./gradlew buildPlugin
-./gradlew signPlugin
-./gradlew publishPlugin
-```
+- Listing copy template: `docs/marketplace-copy.md`
+- Screenshot files prepared for listing upload:
+  - `src/main/resources/01-marker-in-editor.png`
+  - `src/main/resources/02-diff-viewer-result.png`
+  - `src/main/resources/03-invalid-path-feedback.png`
+- Public image URLs (tag `1.0.0`) for Marketplace inline description:
+  - `https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/01-marker-in-editor.png`
+  - `https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/02-diff-viewer-result.png`
+  - `https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/03-invalid-path-feedback.png`
 
-## Project layout
+Note: these screenshots are intended for the Marketplace listing media gallery and are not loaded by the plugin at runtime.
 
-```text
-src/main/kotlin/com/neo/difflink/
-├── actions/CompareActionHandler.kt
-├── markers/CompareMarkerProvider.kt
-└── utils/ComparePathResolver.kt
+## Support
 
-src/main/resources/META-INF/
-├── plugin.xml
-├── pluginIcon.svg
-└── pluginIcon_dark.svg
-```
+- Report issues via your repository issue tracker.
+- For release approval workflows, use your internal support channel.
 
 ## License
 
 See `LICENSE`.
 
-## Support
-
-Use your repository issue tracker or internal support channel for bug reports and release approval.

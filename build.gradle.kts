@@ -1,4 +1,3 @@
-import org.jetbrains.intellij.tasks.RunPluginVerifierTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 
@@ -103,6 +102,7 @@ intellij {
     version.set(requiredProp("platformVersion"))
     type.set(requiredProp("platformType"))
     plugins.set(csv(requiredProp("platformPlugins")))
+    updateSinceUntilBuild.set(false)
 }
 
 tasks {
@@ -118,7 +118,6 @@ tasks {
     patchPluginXml {
         version.set(requiredProp("pluginVersion"))
         sinceBuild.set(requiredProp("pluginSinceBuild"))
-        untilBuild.set(requiredProp("pluginUntilBuild"))
         changeNotes.set(provider {
             renderChangeNotes(project.file("CHANGELOG.md"), requiredProp("pluginVersion"))
         })
@@ -126,6 +125,9 @@ tasks {
 
     runPluginVerifier {
         ideVersions.set(csv(requiredProp("pluginVerifierIdeVersions")))
+        doFirst {
+            delete(layout.buildDirectory.dir("reports/pluginVerifier"))
+        }
     }
 
     signPlugin {

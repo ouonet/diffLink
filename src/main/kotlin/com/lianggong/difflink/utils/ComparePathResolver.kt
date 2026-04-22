@@ -5,7 +5,10 @@ import com.intellij.openapi.vfs.VirtualFileManager
 
 /**
  * Resolves and validates file paths from #DiffLink comments.
- * Paths are resolved relative to the project root.
+ * Path resolution rules:
+ * - If path starts with "/": treated as absolute path from project root (e.g., "/src/main/java/File.java")
+ * - Otherwise: treated as relative path from project root (e.g., "src/main/java/File.java")
+ * Both styles resolve to the same location relative to the project root.
  */
 class ComparePathResolver {
 
@@ -28,7 +31,8 @@ class ComparePathResolver {
             return ResolveResult.Error("Path traversal not allowed")
         }
 
-        // Ensure path starts with /
+        // Normalize path to start with / for consistent resolution
+        // Both "/path/to/file" and "path/to/file" resolve relative to project root
         val normalizedPath = if (trimmedPath.startsWith("/")) {
             trimmedPath
         } else {

@@ -48,39 +48,59 @@ class CompareMarkerProvider : LineMarkerProvider {
     }
 
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        // Only process comments
-        if (element !is PsiComment) {
-            return null
-        }
+        val file = element.containingFile
 
-        // Only process Java files
-        if (element.containingFile !is PsiJavaFile) {
-            return null
+        // For language-aware files, only process comments
+        // For text files, check any element
+        if (isLanguageAwareFile(file)) {
+            if (element !is PsiComment) {
+                return null
+            }
         }
 
         val commentText = element.text
         val match = comparePattern.find(commentText) ?: return null
 
-        val path = match.groupValues[1].trim()
+        val params = parseMarkerParams(match)
         val project = element.project
 
-        val resolveResult = pathResolver.resolvePath(path, project)
+        // Resolve source file (current file if not specified)
+        val sourceFile = if (params.source.isNotEmpty()) {
+            pathResolver.resolvePath(params.source, project)
+        } else {
+            ComparePathResolver.ResolveResult.Success(element.containingFile.virtualFile ?: return null)
+        }
 
-        return when (resolveResult) {
-            is ComparePathResolver.ResolveResult.Success -> {
-                val destinationFile = resolveResult.file
+        // Resolve destination file
+        val destResult = pathResolver.resolvePath(params.destination, project)
+
+        return when {
+            sourceFile is ComparePathResolver.ResolveResult.Success &&
+            destResult is ComparePathResolver.ResolveResult.Success -> {
                 createMarker(
                     element = element,
-                    path = path,
-                    destinationFile = destinationFile,
+                    sourcePath = params.source.ifEmpty { element.containingFile.name },
+                    destPath = params.destination,
+                    sourceFile = sourceFile.file,
+                    destinationFile = destResult.file,
                     isError = false
                 )
             }
-            is ComparePathResolver.ResolveResult.Error -> {
+            sourceFile is ComparePathResolver.ResolveResult.Error -> {
                 createMarker(
                     element = element,
-                    path = path,
-                    errorMessage = resolveResult.message,
+                    sourcePath = params.source,
+                    destPath = params.destination,
+                    errorMessage = sourceFile.message,
+                    isError = true
+                )
+            }
+            else -> {
+                createMarker(
+                    element = element,
+                    sourcePath = params.source.ifEmpty { element.containingFile.name },
+                    destPath = params.destination,
+                    errorMessage = (destResult as ComparePathResolver.ResolveResult.Error).message,
                     isError = true
                 )
             }
@@ -89,7 +109,9 @@ class CompareMarkerProvider : LineMarkerProvider {
 
     private fun createMarker(
         element: PsiElement,
-        path: String,
+        sourcePath: String,
+        destPath: String,
+        sourceFile: com.intellij.openapi.vfs.VirtualFile? = null,
         destinationFile: com.intellij.openapi.vfs.VirtualFile? = null,
         errorMessage: String? = null,
         isError: Boolean
@@ -103,7 +125,8 @@ class CompareMarkerProvider : LineMarkerProvider {
         val tooltip = if (isError) {
             "Compare Navigator: $errorMessage"
         } else {
-            "Compare with $path"
+            val displaySource = if (sourcePath.isEmpty()) element.containingFile.name else sourcePath
+            "Compare $displaySource with $destPath"
         }
 
         return LineMarkerInfo(
@@ -112,10 +135,10 @@ class CompareMarkerProvider : LineMarkerProvider {
             icon,
             { tooltip },
             { e, elt ->
-                if (!isError && destinationFile != null) {
+                if (!isError && sourceFile != null && destinationFile != null) {
                     val handler = CompareActionHandler()
                     handler.navigateToComparison(
-                        sourceFile = elt.containingFile.virtualFile ?: return@LineMarkerInfo,
+                        sourceFile = sourceFile,
                         destinationFile = destinationFile,
                         project = elt.project
                     )

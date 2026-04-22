@@ -30,3 +30,5 @@ Thumbs.db
 
 # Kotlin
 *.kt.bak
+docs/superpowers
+docs/superpowers/

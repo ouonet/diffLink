@@ -38,9 +38,9 @@ class CompareMarkerProvider : LineMarkerProvider {
 
     private fun isLanguageAwareFile(file: PsiFile): Boolean {
         // Check if the file has associated language support
-        // Language.ANY or null means no language support
+        // Language.ANY means no language support
         val language = file.language
-        return language != com.intellij.lang.Language.ANY && language != null
+        return language != com.intellij.lang.Language.ANY
     }
 
     private fun isInComment(element: PsiElement): Boolean {
@@ -134,7 +134,7 @@ class CompareMarkerProvider : LineMarkerProvider {
             element.textRange,
             icon,
             { tooltip },
-            { e, elt ->
+            { _, elt ->
                 if (!isError && sourceFile != null && destinationFile != null) {
                     val handler = CompareActionHandler()
                     handler.navigateToComparison(

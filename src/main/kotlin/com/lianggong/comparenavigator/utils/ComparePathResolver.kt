@@ -41,8 +41,9 @@ class ComparePathResolver {
         }
 
         try {
-            // Get project root
-            val baseDir = project.basePath ?: return ResolveResult.Error("Project root not found")
+            // Get project root - try multiple ways to find it
+            val baseDir = project.basePath ?: project.projectFile?.parent?.path
+                ?: return ResolveResult.Error("Project root not found")
 
             // Construct absolute path
             val absolutePath = baseDir + normalizedPath
@@ -55,8 +56,8 @@ class ComparePathResolver {
             } else {
                 ResolveResult.Error("File not found: $normalizedPath")
             }
-        } catch (e: Exception) {
-            return ResolveResult.Error("Error resolving path: ${e.message}")
+        } catch (_: Exception) {
+            return ResolveResult.Error("Error resolving path: Unknown error")
         }
     }
 }

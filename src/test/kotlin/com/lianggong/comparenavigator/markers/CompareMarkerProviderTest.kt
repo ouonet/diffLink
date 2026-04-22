@@ -181,4 +181,83 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         assertNotNull("Marker should be created despite extra whitespace", marker)
         assertNotNull("Marker should have an icon", marker!!.icon)
     }
+
+    fun testDetectMarkerInJavaFileComment() {
+        // Create a Java file with a compare marker in a comment
+        val javaFile = myFixture.addFileToProject(
+            "Example.java",
+            """
+                // #COMPARE: /path/to/file.java
+                public class Example {}
+            """.trimIndent()
+        )
+
+        // Create the destination file
+        myFixture.addFileToProject("path/to/file.java", "public class File {}")
+
+        // Find the comment
+        val comment = PsiTreeUtil.findChildOfType(javaFile, PsiComment::class.java)
+        assertNotNull("Comment should be found in Java file", comment)
+
+        // Get the marker
+        val marker = markerProvider.getLineMarkerInfo(comment!!)
+        assertNotNull("Should find marker in Java comment", marker)
+        assertNotNull("Marker should have an icon", marker!!.icon)
+    }
+
+    fun testDetectMarkerInPythonFileComment() {
+        // Create a Python file with a compare marker in a comment
+        val pythonFile = myFixture.addFileToProject(
+            "example.py",
+            """
+                # #COMPARE: /path/to/other.py
+                def hello():
+                    pass
+            """.trimIndent()
+        )
+
+        // Create the destination file
+        myFixture.addFileToProject("path/to/other.py", "def goodbye(): pass")
+
+        // Find the comment
+        val comment = PsiTreeUtil.findChildOfType(pythonFile, PsiComment::class.java)
+        assertNotNull("Comment should be found in Python file", comment)
+
+        // Get the marker
+        val marker = markerProvider.getLineMarkerInfo(comment!!)
+        assertNotNull("Should find marker in Python comment", marker)
+        assertNotNull("Marker should have an icon", marker!!.icon)
+    }
+
+    fun testDetectMarkerInTextFileAnywhere() {
+        // Create a Markdown file with a compare marker
+        val markdownFile = myFixture.addFileToProject(
+            "example.md",
+            """
+                # Documentation
+                #COMPARE: /old/doc.md, /new/doc.md
+                Some content
+            """.trimIndent()
+        )
+
+        // Create the destination file
+        myFixture.addFileToProject("new/doc.md", "# New Documentation")
+
+        // For text files, the marker can appear on any line as a text element
+        // We need to find the line with the marker
+        val allElements = PsiTreeUtil.findChildrenOfType(markdownFile, com.intellij.psi.PsiElement::class.java)
+        var markerFound = false
+        for (element in allElements) {
+            val text = element.text
+            if (text.contains("#COMPARE:")) {
+                val marker = markerProvider.getLineMarkerInfo(element)
+                if (marker != null) {
+                    markerFound = true
+                    assertNotNull("Marker should have an icon", marker.icon)
+                    break
+                }
+            }
+        }
+        assertTrue("Should find marker in text file", markerFound)
+    }
 }

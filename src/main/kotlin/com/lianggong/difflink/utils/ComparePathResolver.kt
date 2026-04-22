@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.utils
+package com.lianggong.difflink.utils
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFileManager

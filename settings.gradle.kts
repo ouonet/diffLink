@@ -16,4 +16,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "compare-navigator"
+rootProject.name = "difflink"

@@ -1,4 +1,4 @@
-# Compare Navigator
+# DiffLink
 
 An IntelliJ IDEA plugin that enables developers to navigate and compare files during refactoring using special comments.
 
@@ -21,7 +21,7 @@ An IntelliJ IDEA plugin that enables developers to navigate and compare files du
    ```bash
    ./gradlew buildPlugin
    ```
-4. The JAR will be created at: `build/libs/compare-navigator-0.0.1.jar`
+4. The JAR will be created at: `build/libs/difflink-0.0.1.jar`
 5. Install via: Settings → Plugins → Install Plugin from Disk
 
 ## Usage
@@ -166,19 +166,19 @@ If the destination file doesn't exist or the path is invalid:
 ### Project Structure
 
 ```
-compare-navigator/
-├── src/main/kotlin/com/lianggong/comparenavigator/
+difflink/
+├── src/main/kotlin/com/lianggong/difflink/
 │   ├── markers/
 │   │   └── CompareMarkerProvider.kt      # LineMarkerProvider implementation
 │   ├── actions/
 │   │   └── CompareActionHandler.kt       # Diff viewer launcher
 │   ├── utils/
 │   │   └── ComparePathResolver.kt        # Path validation and resolution
-│   └── CompareNavigatorBundle.properties # Localization strings
+│   └── DiffLinkBundle.properties # Localization strings
 ├── src/main/resources/META-INF/
 │   └── plugin.xml                        # Plugin descriptor
-├── src/test/kotlin/com/lianggong/comparenavigator/
-│   ├── CompareNavigatorIntegrationTest.kt
+├── src/test/kotlin/com/lianggong/difflink/
+│   ├── DiffLinkIntegrationTest.kt
 │   ├── CompareMarkerProviderTest.kt
 │   ├── CompareActionHandlerTest.kt
 │   └── ComparePathResolverTest.kt
@@ -224,7 +224,7 @@ compare-navigator/
 ./gradlew build
 
 # Verify plugin descriptor
-unzip -t build/libs/compare-navigator-0.0.1.jar META-INF/plugin.xml
+unzip -t build/libs/difflink-0.0.1.jar META-INF/plugin.xml
 ```
 
 ### Testing
@@ -251,7 +251,7 @@ The project includes comprehensive test coverage:
   - Error handling
   - Action invocation
 
-- **CompareNavigatorIntegrationTest** (3 tests)
+- **DiffLinkIntegrationTest** (3 tests)
   - End-to-end workflow
   - Multiple file comparisons
   - Missing file error handling

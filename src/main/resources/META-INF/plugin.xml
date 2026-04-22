@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>com.lianggong.comparenavigator</id>
-    <name>Compare Navigator</name>
-    <vendor email="liang.gong@gmail.com" url="https://github.com/lianggong/compare-navigator">
+    <id>com.lianggong.difflink</id>
+    <name>DiffLink</name>
+    <vendor email="liang.gong@gmail.com" url="https://github.com/lianggong/difflink">
         Liang Gong
     </vendor>
 
@@ -15,13 +15,13 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider implementationClass="com.lianggong.comparenavigator.markers.CompareMarkerProvider" />
-        <notificationGroup id="Compare Navigator" displayType="BALLOON" />
+        <codeInsight.lineMarkerProvider implementationClass="com.lianggong.difflink.markers.CompareMarkerProvider" />
+        <notificationGroup id="DiffLink" displayType="BALLOON" />
     </extensions>
 
     <actions>
-        <action id="CompareNavigator.ShowDiff"
-                class="com.lianggong.comparenavigator.actions.CompareActionHandler"
+        <action id="DiffLink.ShowDiff"
+                class="com.lianggong.difflink.actions.CompareActionHandler"
                 text="Show Comparison">
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift C" />
         </action>

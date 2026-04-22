@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.actions
+package com.lianggong.difflink.actions
 
 import com.intellij.diff.DiffManager
 import com.intellij.diff.requests.DiffRequest

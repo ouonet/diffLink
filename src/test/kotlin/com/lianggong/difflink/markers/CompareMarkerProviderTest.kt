@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.markers
+package com.lianggong.difflink.markers
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.psi.PsiComment

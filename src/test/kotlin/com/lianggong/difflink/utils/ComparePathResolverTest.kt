@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.utils
+package com.lianggong.difflink.utils
 
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.junit.Assert.*

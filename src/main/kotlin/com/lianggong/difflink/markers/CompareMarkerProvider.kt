@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.markers
+package com.lianggong.difflink.markers
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
@@ -9,8 +9,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.JBColor
-import com.lianggong.comparenavigator.actions.CompareActionHandler
-import com.lianggong.comparenavigator.utils.ComparePathResolver
+import com.lianggong.difflink.actions.CompareActionHandler
+import com.lianggong.difflink.utils.ComparePathResolver
 import javax.swing.Icon
 
 class CompareMarkerProvider : LineMarkerProvider {
@@ -123,7 +123,7 @@ class CompareMarkerProvider : LineMarkerProvider {
         }
 
         val tooltip = if (isError) {
-            "Compare Navigator: $errorMessage"
+            "DiffLink: $errorMessage"
         } else {
             val displaySource = if (sourcePath.isEmpty()) element.containingFile.name else sourcePath
             "Compare $displaySource with $destPath"
@@ -145,7 +145,7 @@ class CompareMarkerProvider : LineMarkerProvider {
                 }
             },
             GutterIconRenderer.Alignment.LEFT,
-            { if (isError) "Compare Navigator Error" else "Compare Navigator" }
+            { if (isError) "DiffLink Error" else "DiffLink" }
         )
     }
 }

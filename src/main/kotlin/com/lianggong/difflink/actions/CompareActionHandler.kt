@@ -1,4 +1,4 @@
-package com.lianggong.comparenavigator.actions
+package com.lianggong.difflink.actions
 
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
@@ -43,7 +43,7 @@ class CompareActionHandler : AnAction() {
         } catch (e: Exception) {
             // Log error (IntelliJ will handle the notification)
             com.intellij.notification.NotificationGroupManager.getInstance()
-                .getNotificationGroup("Compare Navigator")
+                .getNotificationGroup("DiffLink")
                 .createNotification(
                     "Failed to open comparison: ${e.message}",
                     com.intellij.notification.NotificationType.ERROR

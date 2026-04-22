@@ -1,17 +1,17 @@
-package com.lianggong.comparenavigator
+package com.lianggong.difflink
 
 import com.intellij.icons.AllIcons
 import com.intellij.psi.PsiComment
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import com.lianggong.comparenavigator.markers.CompareMarkerProvider
+import com.lianggong.difflink.markers.CompareMarkerProvider
 import org.junit.Assert.*
 
 /**
- * Integration tests verifying the complete Compare Navigator workflow.
+ * Integration tests verifying the complete DiffLink workflow.
  * Tests end-to-end scenarios including marker detection, file creation, and error handling.
  */
-class CompareNavigatorIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
+class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
 
     private lateinit var markerProvider: CompareMarkerProvider
 

@@ -1,10 +1,12 @@
-package com.lianggong.difflink.utils
+package com.neo.difflink.utils
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import java.io.File
 
 /**
- * Resolves and validates file paths from #DiffLink comments.
+ * Resolves and validates file paths from @DiffLink comments.
  * Path resolution rules:
  * - Relative path (no leading "/"): resolved from the project root, e.g. "src/main/java/File.java"
  * - Absolute path (leading "/"): used as a computer filesystem path, e.g. "/Users/neo/projects/File.java"
@@ -12,7 +14,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 class ComparePathResolver {
 
     sealed class ResolveResult {
-        data class Success(val file: com.intellij.openapi.vfs.VirtualFile) : ResolveResult()
+        data class Success(val file: VirtualFile) : ResolveResult()
         data class Error(val message: String) : ResolveResult()
     }
 
@@ -42,14 +44,19 @@ class ComparePathResolver {
                 "$baseDir/$trimmedPath"
             }
 
-            val virtualFile = VirtualFileManager.getInstance()
-                .findFileByUrl("file://$absolutePath")
-
-            return if (virtualFile != null && virtualFile.exists()) {
-                ResolveResult.Success(virtualFile)
-            } else {
-                ResolveResult.Error("File not found: $absolutePath")
+            val ioFile = File(absolutePath)
+            if (!ioFile.exists()) {
+                return ResolveResult.Error("File not found: $absolutePath")
             }
+            if (ioFile.isDirectory) {
+                return ResolveResult.Error("Path is a directory, not a file: $absolutePath")
+            }
+            // refreshAndFindFileByIoFile does a synchronous VFS refresh so the
+            // VirtualFile is fully registered before we try to read its content.
+            val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile)
+                ?: return ResolveResult.Error("File not found: $absolutePath")
+
+            return ResolveResult.Success(virtualFile)
         } catch (_: Exception) {
             return ResolveResult.Error("Error resolving path: Unknown error")
         }

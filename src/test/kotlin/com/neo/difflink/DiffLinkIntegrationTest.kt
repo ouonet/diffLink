@@ -1,11 +1,12 @@
-package com.lianggong.difflink
+package com.neo.difflink
 
 import com.intellij.icons.AllIcons
 import com.intellij.psi.PsiComment
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import com.lianggong.difflink.markers.CompareMarkerProvider
+import com.neo.difflink.markers.CompareMarkerProvider
 import org.junit.Assert.*
+import java.io.File
 
 /**
  * Integration tests verifying the complete DiffLink workflow.
@@ -29,12 +30,19 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
      * - A valid marker is created (not an error marker)
      */
     fun testEndToEndWorkflow() {
-        // Step 1: Create source file with a single # DiffLink comment
+        // The light fixture's VFS isn't on disk, so resolving a destination path
+        // requires a real file on the filesystem referenced by absolute path.
+        val tempDir = File(System.getProperty("java.io.tmpdir"), "difflink-test-${System.nanoTime()}")
+        tempDir.mkdirs()
+        val destOnDisk = File(tempDir, "DestinationFile.java").apply {
+            writeText("public class DestinationFile {}")
+        }
+
         val sourceFile = myFixture.addFileToProject(
             "SourceFile.java",
             """
                 public class SourceFile {
-                    // #DiffLink: /DestinationFile.java
+                    // @DiffLink: ${destOnDisk.absolutePath}
                     public void sourceMethod() {
                         System.out.println("Source implementation");
                     }
@@ -42,21 +50,8 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
             """.trimIndent()
         )
 
-        // Step 2: Create the destination file that the comment references
-        val destinationFile = myFixture.addFileToProject(
-            "DestinationFile.java",
-            """
-                public class DestinationFile {
-                    public void sourceMethod() {
-                        System.out.println("Destination implementation");
-                    }
-                }
-            """.trimIndent()
-        )
-
-        // Verify both files exist
         assertNotNull("Source file should be created", sourceFile)
-        assertNotNull("Destination file should be created", destinationFile)
+        assertTrue("Destination file should exist on disk", destOnDisk.exists())
 
         // Step 3: Find the # DiffLink comment in the source file
         val comment = PsiTreeUtil.findChildOfType(sourceFile, PsiComment::class.java)
@@ -91,22 +86,28 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
      * - All 3 comments generate valid (non-error) markers
      */
     fun testMultipleFilesWithCompareComments() {
-        // Step 1: Create source file with 3 # DiffLink comments
+        // The light fixture's VFS isn't on disk, so targets need to be real files.
+        val tempDir = File(System.getProperty("java.io.tmpdir"), "difflink-multi-${System.nanoTime()}")
+        tempDir.mkdirs()
+        val first = File(tempDir, "FirstTarget.java").apply { writeText("public class FirstTarget { }") }
+        val second = File(tempDir, "SecondTarget.java").apply { writeText("public class SecondTarget { }") }
+        val third = File(tempDir, "ThirdTarget.java").apply { writeText("public class ThirdTarget { }") }
+
         val sourceFile = myFixture.addFileToProject(
             "MultiCompareSource.java",
             """
                 public class MultiCompareSource {
-                    // #DiffLink: /FirstTarget.java
+                    // @DiffLink: ${first.absolutePath}
                     public void firstMethod() {
                         System.out.println("First comparison");
                     }
 
-                    // #DiffLink: /SecondTarget.java
+                    // @DiffLink: ${second.absolutePath}
                     public void secondMethod() {
                         System.out.println("Second comparison");
                     }
 
-                    // #DiffLink: /ThirdTarget.java
+                    // @DiffLink: ${third.absolutePath}
                     public void thirdMethod() {
                         System.out.println("Third comparison");
                     }
@@ -114,24 +115,9 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
             """.trimIndent()
         )
 
-        // Step 2: Create all three destination files
-        val firstTarget = myFixture.addFileToProject(
-            "FirstTarget.java",
-            "public class FirstTarget { }"
-        )
-        val secondTarget = myFixture.addFileToProject(
-            "SecondTarget.java",
-            "public class SecondTarget { }"
-        )
-        val thirdTarget = myFixture.addFileToProject(
-            "ThirdTarget.java",
-            "public class ThirdTarget { }"
-        )
-
-        // Verify files exist
-        assertNotNull("First target should be created", firstTarget)
-        assertNotNull("Second target should be created", secondTarget)
-        assertNotNull("Third target should be created", thirdTarget)
+        assertTrue("First target should exist on disk", first.exists())
+        assertTrue("Second target should exist on disk", second.exists())
+        assertTrue("Third target should exist on disk", third.exists())
 
         // Step 3: Find all # DiffLink comments in source file
         val comments = PsiTreeUtil.findChildrenOfType(sourceFile, PsiComment::class.java)
@@ -174,7 +160,7 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
             "SourceWithBadPath.java",
             """
                 public class SourceWithBadPath {
-                    // #DiffLink: /NonExistentTarget.java
+                    // @DiffLink: /NonExistentTarget.java
                     public void methodWithBadReference() {
                         System.out.println("This points to missing file");
                     }

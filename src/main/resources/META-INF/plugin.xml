@@ -1,27 +1,32 @@
 <idea-plugin>
-    <id>com.lianggong.difflink</id>
+    <id>com.neo.difflink</id>
     <name>DiffLink</name>
-    <vendor email="liang.gong@gmail.com" url="https://github.com/lianggong/difflink">
-        Liang Gong
-    </vendor>
+    <vendor>neo</vendor>
 
     <description><![CDATA[
-        Navigate and compare files during refactoring using #DiffLink markers. Mark any text file with #DiffLink:/path/to/file or #DiffLink:/src, /dst markers, and click the gutter icon to instantly compare files using IntelliJ's diff viewer. Works with Java, Python, Kotlin, JavaScript, Markdown, configuration files, and more.
+        Navigate and compare files with <code>@DiffLink</code> markers directly from the editor gutter.
+        Add <code>@DiffLink:path/to/file</code> or <code>@DiffLink:source, destination</code> to a comment or plain-text document,
+        then click the gutter icon to open IntelliJ IDEA's built-in diff viewer. DiffLink is designed for IntelliJ IDEA
+        Community and Ultimate on the 2023.2 platform and works across common text-based file types including Java,
+        Kotlin, Python, JavaScript, Markdown, XML, shell scripts, and configuration files.
     ]]></description>
 
     <version>0.0.1</version>
-    <idea-version since-build="232" />
+    <idea-version since-build="232" until-build="232.*" />
+    <change-notes><![CDATA[
+        <p>Initial release.</p>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider implementationClass="com.lianggong.difflink.markers.CompareMarkerProvider" />
+        <codeInsight.lineMarkerProvider implementationClass="com.neo.difflink.markers.CompareMarkerProvider" />
         <notificationGroup id="DiffLink" displayType="BALLOON" />
     </extensions>
 
     <actions>
         <action id="DiffLink.ShowDiff"
-                class="com.lianggong.difflink.actions.CompareActionHandler"
+                class="com.neo.difflink.actions.CompareActionHandler"
                 text="Show Comparison">
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift C" />
         </action>

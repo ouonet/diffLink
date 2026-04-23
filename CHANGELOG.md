@@ -5,6 +5,7 @@
 ### Changed
 - Prefer file-backed diff content so files opened by DiffLink are editable directly in IntelliJ's diff viewer.
 - Keep a text-based fallback when file-backed content cannot be created, preserving compatibility for edge-case paths.
+- Updated Plugin Verifier targets to include latest available IntelliJ IDEA 2025.2.6.1 builds (IC/IU).
 
 ## [1.0.2] - 2026-04-22
 

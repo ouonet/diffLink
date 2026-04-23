@@ -96,7 +96,7 @@ jobs:
             -PpluginVersion="${VERSION}"
 
       - name: Save Plugin Verifier IDEs cache
-        if: ${{ always() }}
+        if: ${{ always() && steps.plugin-verifier-cache-restore.outputs.cache-hit != 'true' && steps.plugin-verifier-cache-restore.outputs.cache-primary-key != '' }}
         uses: actions/cache/save@v4
         with:
           path: ~/.cache/pluginVerifier

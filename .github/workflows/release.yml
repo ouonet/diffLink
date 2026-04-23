@@ -27,18 +27,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Cache Plugin Verifier IDEs
-        uses: actions/cache@v4
+      - name: Restore Plugin Verifier IDEs cache
+        id: plugin-verifier-cache-restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cache/pluginVerifier
           key: ${{ runner.os }}-plugin-verifier-ides-v1-IC-232.9559.62-IC-252.26830.84-IU-252.26830.84
           restore-keys: |
             ${{ runner.os }}-plugin-verifier-ides-v1-
+
+      - name: Show Plugin Verifier cache status
+        run: |
+          echo "cache-hit=${{ steps.plugin-verifier-cache-restore.outputs.cache-hit }}"
+          echo "cache-primary-key=${{ steps.plugin-verifier-cache-restore.outputs.cache-primary-key }}"
 
       - name: Test, verify, sign, and publish
         env:
@@ -84,4 +94,11 @@ jobs:
           ./gradlew --no-daemon \
             signPlugin publishPlugin \
             -PpluginVersion="${VERSION}"
+
+      - name: Save Plugin Verifier IDEs cache
+        if: ${{ always() }}
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/pluginVerifier
+          key: ${{ steps.plugin-verifier-cache-restore.outputs.cache-primary-key }}
 

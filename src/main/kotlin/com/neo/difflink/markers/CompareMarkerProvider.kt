@@ -4,131 +4,119 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.icons.AllIcons
 import com.intellij.lang.Language
+import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.neo.difflink.actions.CompareActionHandler
 import com.neo.difflink.utils.ComparePathResolver
 
-/*
-@DiffLink: src/main/kotlin/com/neo/difflink/markers/CompareMarkerProvider.kt
- */
 class CompareMarkerProvider : LineMarkerProvider {
 
     private val pathResolver = ComparePathResolver()
     private val comparePattern = Regex("""@DiffLink:\s*(.+)""")
 
-    data class MarkerParams(
-        val source: String,
-        val destination: String
-    )
+    data class MarkerParams(val source: String, val destination: String)
 
     private fun parseMarkerParams(match: MatchResult): MarkerParams {
-        // Strip trailing block-comment terminators: "*/" (C-style) and "-->" (HTML/XML).
         val content = match.groupValues[1]
             .trimEnd()
             .removeSuffix("*/").trimEnd()
             .removeSuffix("-->").trim()
         val parts = content.split(",", limit = 2).map { it.trim() }
         val second = parts.getOrNull(1)?.takeIf { it.isNotEmpty() }
-
-        return if (second != null) {
-            MarkerParams(source = parts[0], destination = second)
-        } else {
-            MarkerParams(source = "", destination = parts[0])
-        }
+        return if (second != null) MarkerParams(parts[0], second) else MarkerParams("", parts[0])
     }
 
-    private fun isLanguageAwareFile(file: PsiFile): Boolean {
-        // Structured languages (Java, Python, etc.) have PsiComment nodes, so we restrict
-        // marker detection to comments. Plain-text and Markdown don't, so we scan their
-        // text directly. Markdown is matched by id to avoid a compile-time plugin dep.
-        val language = file.language
-        if (language == Language.ANY) return false
-        if (language == PlainTextLanguage.INSTANCE) return false
-        if (language.id == "Markdown") return false
-        return true
+    // Returns true if `lang` is a sub-dialect of XML (e.g. HTML) but not XML itself.
+    // HTMLLanguage extends XMLLanguage, so registering both "HTML" and "XML" providers
+    // causes both to fire for .html files.  When detected as an XML sub-dialect we skip
+    // in this call — the more-specific (HTML) provider handles it instead.
+    // Plain .xml files have XMLLanguage as their root, so they are never skipped.
+    private fun isXmlSubDialect(lang: Language): Boolean {
+        var parent = lang.baseLanguage
+        while (parent != null) {
+            if (parent.id == "XML") return true
+            parent = parent.baseLanguage
+        }
+        return false
     }
 
-    private fun isInComment(element: PsiElement): Boolean {
-        return element is PsiComment
-    }
+    // Must return null here; all work is done in collectSlowLineMarkers.
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        val file = element.containingFile
+    override fun collectSlowLineMarkers(
+        elements: MutableList<out PsiElement>,
+        result: MutableCollection<in LineMarkerInfo<*>>
+    ) {
+        val file = elements.firstOrNull()?.containingFile ?: return
+        val project = file.project
 
-        if (isLanguageAwareFile(file)) {
-            if (element !is PsiComment) {
-                return null
+        // Skip injected language fragments (e.g. JavaScript inside HTML <script> tags).
+        if (InjectedLanguageManager.getInstance(project).isInjectedFragment(file)) return
+
+        // Skip XML-sub-dialect files (e.g. HTML) when triggered via the XML registration.
+        // The more-specific provider (HTML) will handle those files instead.
+        if (isXmlSubDialect(file.language)) return
+
+        val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: return
+
+        // Per-batch dedup: each call to collectSlowLineMarkers gets its own HashSet.
+        // Two-phase rendering (visible + non-visible batches) passes disjoint element
+        // sets, so a line is processed at most once per phase — which is correct.
+        // HTML duplicate-icon issue is solved by removing the XML registration in
+        // plugin.xml (HTMLLanguage extends XMLLanguage; only one provider must fire).
+        val seenLines = HashSet<Int>()
+
+        for (element in elements) {
+            // Official best practice: only leaf nodes (no children).
+            if (element.firstChild != null) continue
+            val range = element.textRange ?: continue
+            if (range.length <= 0) continue
+
+            val lineNum = document.getLineNumber(range.startOffset)
+            if (!seenLines.add(lineNum)) continue   // already handled in this batch
+
+            val lineStart = document.getLineStartOffset(lineNum)
+            val lineEnd   = document.getLineEndOffset(lineNum)
+            val lineText  = document.charsSequence.subSequence(lineStart, lineEnd).toString()
+            val match     = comparePattern.find(lineText) ?: continue
+
+            val markerRange = TextRange(
+                lineStart + match.range.first,
+                lineStart + match.range.last + 1
+            )
+
+            val params = parseMarkerParams(match)
+            val fileName = file.name
+
+            val sourceResult = if (params.source.isNotEmpty()) {
+                pathResolver.resolvePath(params.source, project)
+            } else {
+                ComparePathResolver.ResolveResult.Success(file.virtualFile ?: continue)
             }
-        } else {
-            // Non-language-aware files: only match on leaves so we don't attach duplicate
-            // markers to every ancestor PSI node that contains the same text.
-            if (element.firstChild != null) return null
-        }
+            val destResult = pathResolver.resolvePath(params.destination, project)
 
-        val commentText = element.text ?: return null
-        val match = comparePattern.find(commentText) ?: return null
+            result.add(when {
+                sourceResult is ComparePathResolver.ResolveResult.Success &&
+                    destResult is ComparePathResolver.ResolveResult.Success ->
+                    createMarker(element, markerRange,
+                        params.source.ifEmpty { fileName }, params.destination,
+                        sourceResult.file, destResult.file, isError = false)
 
-        val params = parseMarkerParams(match)
-        val project = element.project
+                sourceResult is ComparePathResolver.ResolveResult.Error ->
+                    createMarker(element, markerRange,
+                        params.source, params.destination,
+                        errorMessage = sourceResult.message, isError = true)
 
-        // Anchor the marker to the actual "@DiffLink:..." match, not the whole element.
-        // Otherwise a plain-text leaf that spans the entire file would put the gutter
-        // icon on line 1 regardless of where the marker sits.
-        val elementStart = element.textRange.startOffset
-        val markerRange = TextRange(
-            elementStart + match.range.first,
-            elementStart + match.range.last + 1
-        )
-
-        // Resolve source file (current file if not specified)
-        val sourceFile = if (params.source.isNotEmpty()) {
-            pathResolver.resolvePath(params.source, project)
-        } else {
-            ComparePathResolver.ResolveResult.Success(element.containingFile.virtualFile ?: return null)
-        }
-
-        // Resolve destination file
-        val destResult = pathResolver.resolvePath(params.destination, project)
-
-        return when {
-            sourceFile is ComparePathResolver.ResolveResult.Success &&
-            destResult is ComparePathResolver.ResolveResult.Success -> {
-                createMarker(
-                    element = element,
-                    markerRange = markerRange,
-                    sourcePath = params.source.ifEmpty { element.containingFile.name },
-                    destPath = params.destination,
-                    sourceFile = sourceFile.file,
-                    destinationFile = destResult.file,
-                    isError = false
-                )
-            }
-            sourceFile is ComparePathResolver.ResolveResult.Error -> {
-                createMarker(
-                    element = element,
-                    markerRange = markerRange,
-                    sourcePath = params.source,
-                    destPath = params.destination,
-                    errorMessage = sourceFile.message,
-                    isError = true
-                )
-            }
-            else -> {
-                createMarker(
-                    element = element,
-                    markerRange = markerRange,
-                    sourcePath = params.source.ifEmpty { element.containingFile.name },
-                    destPath = params.destination,
-                    errorMessage = (destResult as ComparePathResolver.ResolveResult.Error).message,
-                    isError = true
-                )
-            }
+                else ->
+                    createMarker(element, markerRange,
+                        params.source.ifEmpty { fileName }, params.destination,
+                        errorMessage = (destResult as ComparePathResolver.ResolveResult.Error).message,
+                        isError = true)
+            })
         }
     }
 
@@ -142,19 +130,12 @@ class CompareMarkerProvider : LineMarkerProvider {
         errorMessage: String? = null,
         isError: Boolean
     ): LineMarkerInfo<PsiElement> {
-        val icon = if (isError) {
-            AllIcons.General.Error
-        } else {
-            AllIcons.Actions.Diff
-        }
-
+        val icon = if (isError) AllIcons.General.Error else AllIcons.Actions.Diff
         val tooltip = if (isError) {
             "DiffLink: $errorMessage"
         } else {
-            val displaySource = if (sourcePath.isEmpty()) element.containingFile.name else sourcePath
-            "Compare $displaySource with $destPath"
+            "Compare ${sourcePath.ifEmpty { element.containingFile?.name ?: "" }} with $destPath"
         }
-
         return LineMarkerInfo(
             element,
             markerRange,
@@ -162,12 +143,7 @@ class CompareMarkerProvider : LineMarkerProvider {
             { tooltip },
             { _, elt ->
                 if (!isError && sourceFile != null && destinationFile != null) {
-                    val handler = CompareActionHandler()
-                    handler.navigateToComparison(
-                        sourceFile = sourceFile,
-                        destinationFile = destinationFile,
-                        project = elt.project
-                    )
+                    CompareActionHandler().navigateToComparison(sourceFile, destinationFile, elt.project)
                 }
             },
             GutterIconRenderer.Alignment.LEFT,

@@ -27,7 +27,7 @@ class Feature
 - **IDE products:** IntelliJ IDEA Community and Ultimate
 - **Minimum build:** `232` (IntelliJ IDEA 2023.2.1)
 - **Upper build limit:** none (`since-build="232"`, no `until-build`)
-- **Current verifier targets:** `IC-232.9559.62` and `IU-252.26830.84`
+- **Current verifier targets:** `IC-232.9559.62`, `IC-2025.2.6.1`, and `IU-2025.2.6.1`
 
 ## Marker format
 
@@ -63,7 +63,8 @@ Any text-based file where `@DiffLink` can be detected, including Java, Kotlin, P
 ./gradlew --no-daemon test
 ./gradlew --no-daemon buildPlugin
 ./gradlew --no-daemon runPluginVerifier
-./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-252.26830.84
+./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IC-232.9559.62,IC-2025.2.6.1
+./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=IU-2025.2.6.1
 ```
 
 The plugin ZIP is generated in `build/distributions/`.

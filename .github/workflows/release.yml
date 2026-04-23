@@ -15,8 +15,79 @@ concurrency:
   group: release-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
+  verify-ci-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure CI build and verify succeeded for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          sha = os.environ["GITHUB_SHA"]
+
+          def run(cmd):
+              proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+              if proc.returncode != 0:
+                  print(proc.stdout)
+                  sys.exit(proc.returncode)
+              return proc.stdout
+
+          runs_raw = run([
+              "gh", "run", "list",
+              "--workflow", "ci.yml",
+              "--commit", sha,
+              "--limit", "20",
+              "--json", "databaseId,status,conclusion,createdAt,url"
+          ])
+          runs = json.loads(runs_raw)
+
+          completed_success = [r for r in runs if r.get("status") == "completed" and r.get("conclusion") == "success"]
+          if not completed_success:
+              print(f"No successful CI run found for commit {sha}. Release is blocked.")
+              sys.exit(1)
+
+          completed_success.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
+          ci_run = completed_success[0]
+          run_id = ci_run["databaseId"]
+          print(f"Using CI run: {run_id} ({ci_run.get('url', '')})")
+
+          jobs_raw = run(["gh", "api", f"repos/{repo}/actions/runs/{run_id}/jobs"])
+          jobs_data = json.loads(jobs_raw)
+          jobs = jobs_data.get("jobs", [])
+
+          required = {"build", "verify"}
+          results = {j.get("name"): j.get("conclusion") for j in jobs if j.get("name") in required}
+
+          missing = sorted(required - set(results.keys()))
+          failed = sorted(name for name, conclusion in results.items() if conclusion != "success")
+
+          if missing:
+              print("Missing required CI jobs:", ", ".join(missing))
+              sys.exit(1)
+
+          if failed:
+              print("Required CI jobs not successful:", ", ".join(failed))
+              for j in jobs:
+                  if j.get("name") in required:
+                      print(f"- {j.get('name')}: {j.get('conclusion')}")
+              sys.exit(1)
+
+          print("CI gate passed: build=success, verify=success")
+          PY
+
   publish:
+    needs: verify-ci-gate
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -36,24 +107,9 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Restore Plugin Verifier IDEs cache
-        id: plugin-verifier-cache-restore
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.cache/pluginVerifier
-          key: ${{ runner.os }}-plugin-verifier-ides-v1-IC-232.9559.62-IC-2025.2.6.1-IU-2025.2.6.1
-          restore-keys: |
-            ${{ runner.os }}-plugin-verifier-ides-v1-
-
-      - name: Show Plugin Verifier cache status
-        run: |
-          echo "cache-hit=${{ steps.plugin-verifier-cache-restore.outputs.cache-hit }}"
-          echo "cache-primary-key=${{ steps.plugin-verifier-cache-restore.outputs.cache-primary-key }}"
-
-      - name: Test, verify, sign, and publish
+      - name: Sign and publish
         env:
           RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.version }}
-          VERIFIER_IDE_VERSIONS: IC-232.9559.62,IC-2025.2.6.1,IU-2025.2.6.1
           CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
@@ -67,38 +123,6 @@ jobs:
           echo "Publishing plugin version: ${VERSION}"
 
           ./gradlew --no-daemon \
-            test buildPlugin \
-            -PpluginVersion="${VERSION}"
-
-          run_verifier() {
-            ./gradlew --no-daemon \
-              runPluginVerifier \
-              -PpluginVersion="${VERSION}" \
-              -PpluginVerifierIdeVersions=${VERIFIER_IDE_VERSIONS}
-          }
-
-          for attempt in 1 2 3; do
-            echo "Plugin Verifier attempt ${attempt}/3"
-            if run_verifier; then
-              break
-            fi
-
-            if [[ "${attempt}" -eq 3 ]]; then
-              echo "Plugin Verifier failed after 3 attempts"
-              exit 1
-            fi
-
-            echo "Plugin Verifier failed on attempt ${attempt}. Retrying..."
-          done
-
-          ./gradlew --no-daemon \
             signPlugin publishPlugin \
             -PpluginVersion="${VERSION}"
-
-      - name: Save Plugin Verifier IDEs cache
-        if: ${{ always() && steps.plugin-verifier-cache-restore.outputs.cache-hit != 'true' && steps.plugin-verifier-cache-restore.outputs.cache-primary-key != '' }}
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/pluginVerifier
-          key: ${{ steps.plugin-verifier-cache-restore.outputs.cache-primary-key }}
 

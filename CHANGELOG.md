@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] - 2026-04-23
+
+### Changed
+- Prefer file-backed diff content so files opened by DiffLink are editable directly in IntelliJ's diff viewer.
+- Keep a text-based fallback when file-backed content cannot be created, preserving compatibility for edge-case paths.
+
 ## [1.0.2] - 2026-04-22
 
 ### Fixed
@@ -24,4 +30,3 @@
 - Centralized version, platform, and release settings in `gradle.properties`.
 - Updated the documentation to match the current package structure and release process.
 - Switched release automation and media references to semver tag `1.0.0`.
-

@@ -2,6 +2,7 @@ package com.neo.difflink.actions
 
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
+import com.intellij.diff.contents.DiffContent
 import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -27,19 +28,8 @@ class CompareActionHandler : AnAction() {
     ) {
         try {
             val contentFactory = DiffContentFactory.getInstance()
-            // Read bytes directly so DiffContentFactory never hits FileDocumentManager,
-            // which returns null for files outside the current project's content roots
-            // and causes the "Cannot show diff" empty-content fallback.
-            val sourceContent = contentFactory.create(
-                project,
-                String(sourceFile.contentsToByteArray(), sourceFile.charset),
-                sourceFile.fileType
-            )
-            val destContent = contentFactory.create(
-                project,
-                String(destinationFile.contentsToByteArray(), destinationFile.charset),
-                destinationFile.fileType
-            )
+            val sourceContent = createDiffContent(contentFactory, project, sourceFile)
+            val destContent = createDiffContent(contentFactory, project, destinationFile)
 
             // Create diff request
             val diffRequest = SimpleDiffRequest(
@@ -61,6 +51,24 @@ class CompareActionHandler : AnAction() {
                     NotificationType.ERROR
                 )
                 .notify(project)
+        }
+    }
+
+    private fun createDiffContent(
+        contentFactory: DiffContentFactory,
+        project: Project,
+        file: VirtualFile
+    ): DiffContent {
+        return try {
+            // Prefer file-backed content so the diff viewer can edit and save changes.
+            contentFactory.create(project, file)
+        } catch (_: Exception) {
+            // Fallback for edge cases where file-backed content cannot be created.
+            contentFactory.create(
+                project,
+                String(file.contentsToByteArray(), file.charset),
+                file.fileType
+            )
         }
     }
 }

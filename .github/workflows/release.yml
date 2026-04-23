@@ -43,6 +43,7 @@ jobs:
       - name: Test, verify, sign, and publish
         env:
           RELEASE_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.version }}
+          VERIFIER_IDE_VERSIONS: IC-232.9559.62,IC-252.26830.84,IU-252.26830.84
           CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
@@ -56,7 +57,31 @@ jobs:
           echo "Publishing plugin version: ${VERSION}"
 
           ./gradlew --no-daemon \
-            test buildPlugin runPluginVerifier signPlugin publishPlugin \
-            -PpluginVersion="${VERSION}" \
-            -PpluginVerifierIdeVersions=IC-232.9559.62,IC-252.26830.84,IU-252.26830.84
+            test buildPlugin \
+            -PpluginVersion="${VERSION}"
+
+          run_verifier() {
+            ./gradlew --no-daemon \
+              runPluginVerifier \
+              -PpluginVersion="${VERSION}" \
+              -PpluginVerifierIdeVersions=${VERIFIER_IDE_VERSIONS}
+          }
+
+          for attempt in 1 2 3; do
+            echo "Plugin Verifier attempt ${attempt}/3"
+            if run_verifier; then
+              break
+            fi
+
+            if [[ "${attempt}" -eq 3 ]]; then
+              echo "Plugin Verifier failed after 3 attempts"
+              exit 1
+            fi
+
+            echo "Plugin Verifier failed on attempt ${attempt}. Retrying..."
+          done
+
+          ./gradlew --no-daemon \
+            signPlugin publishPlugin \
+            -PpluginVersion="${VERSION}"
 

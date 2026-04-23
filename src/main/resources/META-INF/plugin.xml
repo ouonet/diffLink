@@ -39,7 +39,50 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <codeInsight.lineMarkerProvider implementationClass="com.neo.difflink.markers.CompareMarkerProvider" />
+        <!--
+          lineMarkerProvider is a LanguageExtension: the platform requires a concrete,
+          non-empty language ID per registration. "ANY" and "" are both rejected at
+          install time. The list below covers all languages supported by JetBrains IDEs.
+          The implementation itself is fully language-agnostic (raw leaf-text scan),
+          so no per-language code changes are ever needed.
+        -->
+        <!-- JVM -->
+        <codeInsight.lineMarkerProvider language="JAVA"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="kotlin"           implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Groovy"           implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Scala"            implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <!-- Scripting / dynamic -->
+        <codeInsight.lineMarkerProvider language="Python"           implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Ruby"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="PHP"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Lua"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <!-- Systems -->
+        <codeInsight.lineMarkerProvider language="C"                implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="C++"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="go"               implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Rust"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="ObjectiveC"       implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Swift"            implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <!-- Web -->
+        <codeInsight.lineMarkerProvider language="JavaScript"       implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="TypeScript"       implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="HTML"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="CSS"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="SCSS"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Vue"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <!-- Data / config -->
+        <codeInsight.lineMarkerProvider language="XML"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="JSON"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="YAML"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="TOML"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Properties"       implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Ini"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Dockerfile"       implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <!-- Text / docs -->
+        <codeInsight.lineMarkerProvider language="TEXT"             implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Markdown"         implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Shell Script"     implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="SQL"              implementationClass="com.neo.difflink.markers.CompareMarkerProvider"/>
         <notificationGroup id="DiffLink" displayType="BALLOON" />
     </extensions>
 

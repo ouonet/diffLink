@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.0.7] - 2026-04-23
+
+### Fixed
+- Eliminated duplicate gutter icons in HTML files caused by `HTMLLanguage` extending `XMLLanguage`.
+  The XML provider now skips files whose language is an XML sub-dialect, deferring to the
+  more specific (HTML) provider instead.
+- Restored gutter icon visibility on first file open after the language-hierarchy fix.
+  Per-batch deduplication state is no longer persisted across render cycles.
+
+## [1.0.6] - 2026-04-23
+
+### Added
+- Support for 30+ languages via explicit `codeInsight.lineMarkerProvider` registrations:
+  Java, Kotlin, Groovy, Scala, Python, Ruby, PHP, Lua, C, C++, Go, Rust, Objective-C,
+  Swift, JavaScript, TypeScript, HTML, CSS, SCSS, Vue, XML, JSON, YAML, TOML, Properties,
+  INI, Dockerfile, plain text, Markdown, Shell Script, SQL.
+
+### Fixed
+- Plugin installation crash (`PluginException: No key specified for extension`) caused by
+  missing or invalid `language` attribute on `lineMarkerProvider` registrations.
+- Duplicate gutter icons from IntelliJ's two-phase line marker rendering (visible vs.
+  non-visible element batches).
+- Duplicate gutter icons from language injection (e.g. JavaScript inside HTML `<script>`
+  tags); injected PSI fragments are now skipped via `InjectedLanguageManager`.
+- Gutter icons not appearing in Go files (GoLand), Python files, and other non-JVM
+  languages due to PSI comment type filtering; replaced with language-agnostic raw
+  line-text scan.
+
 ## [1.0.5] - 2026-04-23
 
 ### Changed

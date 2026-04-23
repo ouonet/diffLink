@@ -1,7 +1,8 @@
 package com.neo.difflink
 
+import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.icons.AllIcons
-import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.neo.difflink.markers.CompareMarkerProvider
@@ -19,6 +20,13 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
     override fun setUp() {
         super.setUp()
         markerProvider = CompareMarkerProvider()
+    }
+
+    private fun collectMarkers(file: PsiFile): List<LineMarkerInfo<*>> {
+        val elements = PsiTreeUtil.collectElements(file) { true }.toMutableList()
+        val result = mutableListOf<LineMarkerInfo<*>>()
+        markerProvider.collectSlowLineMarkers(elements, result)
+        return result
     }
 
     /**
@@ -53,16 +61,12 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
         assertNotNull("Source file should be created", sourceFile)
         assertTrue("Destination file should exist on disk", destOnDisk.exists())
 
-        // Step 3: Find the # DiffLink comment in the source file
-        val comment = PsiTreeUtil.findChildOfType(sourceFile, PsiComment::class.java)
-        assertNotNull("Comment should be found in source file", comment)
-
-        // Step 4: Use CompareMarkerProvider to detect the comment
-        val marker = markerProvider.getLineMarkerInfo(comment!!)
-        assertNotNull("Marker should be created for valid compare comment", marker)
+        val markers = collectMarkers(sourceFile)
+        assertEquals("Exactly one marker should be created", 1, markers.size)
+        val marker = markers.first()
 
         // Step 5: Verify it's not an error marker
-        assertNotNull("Marker should have an icon", marker!!.icon)
+        assertNotNull("Marker should have an icon", marker.icon)
         assertNotEquals(
             "Marker should not be an error marker",
             AllIcons.General.Error,
@@ -119,25 +123,17 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
         assertTrue("Second target should exist on disk", second.exists())
         assertTrue("Third target should exist on disk", third.exists())
 
-        // Step 3: Find all # DiffLink comments in source file
-        val comments = PsiTreeUtil.findChildrenOfType(sourceFile, PsiComment::class.java)
-        assertEquals("Should find exactly 3 comments", 3, comments.size)
+        val markers = collectMarkers(sourceFile)
+        assertEquals("Should generate exactly 3 markers", 3, markers.size)
 
-        // Step 4: Use CompareMarkerProvider to detect all comments
         var validMarkerCount = 0
         var errorMarkerCount = 0
 
-        for (comment in comments) {
-            val marker = markerProvider.getLineMarkerInfo(comment)
-            assertNotNull("Marker should be created for each comment", marker)
-
-            if (marker != null) {
-                // Check if it's an error marker
-                if (marker.icon == AllIcons.General.Error) {
-                    errorMarkerCount++
-                } else {
-                    validMarkerCount++
-                }
+        for (marker in markers) {
+            if (marker.icon == AllIcons.General.Error) {
+                errorMarkerCount++
+            } else {
+                validMarkerCount++
             }
         }
 
@@ -173,16 +169,12 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
 
         // Note: We deliberately do NOT create the destination file to simulate an error
 
-        // Step 2: Find the # DiffLink comment in the source file
-        val comment = PsiTreeUtil.findChildOfType(sourceFile, PsiComment::class.java)
-        assertNotNull("Comment should be found in source file", comment)
-
-        // Step 3: Use CompareMarkerProvider to detect the comment
-        val marker = markerProvider.getLineMarkerInfo(comment!!)
-        assertNotNull("Marker should be created even for invalid path", marker)
+        val markers = collectMarkers(sourceFile)
+        assertEquals("Invalid destination should still produce one marker", 1, markers.size)
+        val marker = markers.first()
 
         // Step 4: Verify it IS an error marker
-        assertNotNull("Error marker should have an icon", marker!!.icon)
+        assertNotNull("Error marker should have an icon", marker.icon)
         // The icon should represent an error - just verify it exists since toString()
         // comparison may not be reliable across different IntelliJ versions
         assertNotNull("Icon should be an error icon", marker.icon)

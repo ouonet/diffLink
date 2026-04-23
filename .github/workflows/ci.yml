@@ -41,6 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERIFIER_IDE_VERSIONS: ${{ github.event_name == 'pull_request' && 'IC-252.26830.84' || 'IC-232.9559.62,IC-252.26830.84' }}
+      VERIFIER_CACHE_KEY_SUFFIX: ${{ github.event_name == 'pull_request' && 'IC-252.26830.84' || 'IC-232.9559.62-IC-252.26830.84' }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -59,7 +60,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pluginVerifier
-          key: ${{ runner.os }}-plugin-verifier-ides-v1-${{ env.VERIFIER_IDE_VERSIONS }}
+          key: ${{ runner.os }}-plugin-verifier-ides-v1-${{ env.VERIFIER_CACHE_KEY_SUFFIX }}
           restore-keys: |
             ${{ runner.os }}-plugin-verifier-ides-v1-
 

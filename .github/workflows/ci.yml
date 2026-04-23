@@ -64,5 +64,22 @@ jobs:
             ${{ runner.os }}-plugin-verifier-ides-v1-
 
       - name: Run Plugin Verifier
-        run: ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=${VERIFIER_IDE_VERSIONS}
+        run: |
+          run_verifier() {
+            ./gradlew --no-daemon runPluginVerifier -PpluginVerifierIdeVersions=${VERIFIER_IDE_VERSIONS}
+          }
+
+          for attempt in 1 2 3; do
+            echo "Plugin Verifier attempt ${attempt}/3"
+            if run_verifier; then
+              exit 0
+            fi
+
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "Plugin Verifier failed on attempt ${attempt}. Retrying..."
+            fi
+          done
+
+          echo "Plugin Verifier failed after 3 attempts"
+          exit 1
 

@@ -28,16 +28,16 @@ jobs:
 
       - name: Ensure CI build and verify succeeded for this commit
         env:
-            GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
           import json
           import os
           import sys
-            import time
-            import urllib.error
-            import urllib.parse
-            import urllib.request
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
 
           repo = os.environ["GITHUB_REPOSITORY"]
           sha = os.environ["GITHUB_SHA"]
@@ -82,7 +82,7 @@ jobs:
             completed_success = [r for r in runs if r.get("status") == "completed" and r.get("conclusion") == "success"]
 
             if completed_success:
-              completed_success.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
+              completed_success.sort(key=lambda r: r.get("created_at", ""), reverse=True)
               ci_run = completed_success[0]
               break
 
@@ -103,10 +103,10 @@ jobs:
             )
             sys.exit(1)
 
-          run_id = ci_run["databaseId"]
-          print(f"Using CI run: {run_id} ({ci_run.get('url', '')})")
+          run_id = ci_run["id"]
+          print(f"Using CI run: {run_id} ({ci_run.get('html_url', ci_run.get('url', ''))})")
 
-            jobs_data = api_get(f"/actions/runs/{run_id}/jobs")
+          jobs_data = api_get(f"/actions/runs/{run_id}/jobs")
           jobs = jobs_data.get("jobs", [])
 
           required = {"build", "verify"}
@@ -116,15 +116,15 @@ jobs:
           failed = sorted(name for name, conclusion in results.items() if conclusion != "success")
 
           if missing:
-              print("Missing required CI jobs:", ", ".join(missing))
-              sys.exit(1)
+            print("Missing required CI jobs:", ", ".join(missing))
+            sys.exit(1)
 
           if failed:
-              print("Required CI jobs not successful:", ", ".join(failed))
-              for j in jobs:
-                  if j.get("name") in required:
-                      print(f"- {j.get('name')}: {j.get('conclusion')}")
-              sys.exit(1)
+            print("Required CI jobs not successful:", ", ".join(failed))
+            for j in jobs:
+              if j.get("name") in required:
+              print(f"- {j.get('name')}: {j.get('conclusion')}")
+            sys.exit(1)
 
           print("CI gate passed: build=success, verify=success")
           PY

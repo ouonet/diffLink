@@ -1,6 +1,7 @@
 package com.neo.difflink.markers
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.icons.AllIcons
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -214,5 +215,58 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
 
         val markers = collectMarkers(javaFile)
         assertEquals("Whitespace in two-parameter syntax should parse", 1, markers.size)
+    }
+
+    fun testMarkerVisibilityAcrossRepeatedCollectionCycles() {
+        val javaFile = myFixture.addFileToProject(
+            "Cycle.java",
+            """
+                // @DiffLink: /target/CycleTarget.java
+                public class Cycle {}
+            """.trimIndent()
+        )
+        myFixture.addFileToProject("target/CycleTarget.java", "public class CycleTarget {}")
+
+        val firstPass = collectMarkers(javaFile)
+        val secondPass = collectMarkers(javaFile)
+
+        assertEquals("First collection pass should produce one marker", 1, firstPass.size)
+        assertEquals("Second collection pass should also produce one marker", 1, secondPass.size)
+    }
+
+    fun testParseXmlCommentMarkerFormat() {
+        // Light-fixture VFS paths are in memory; resolver uses LocalFileSystem so
+        // relative paths that only exist in VFS will resolve to an error marker.
+        // The goal of this test is to verify the @DiffLink pattern is parsed from
+        // an XML comment — not that file resolution succeeds — so we only assert
+        // that exactly one marker is emitted (icon can be diff or error).
+        val xmlFile = myFixture.addFileToProject(
+            "example.xml",
+            """
+                <!-- @DiffLink: xml/source.xml, xml/destination.xml -->
+                <root />
+            """.trimIndent()
+        )
+        myFixture.addFileToProject("xml/source.xml", "<root><a/></root>")
+        myFixture.addFileToProject("xml/destination.xml", "<root><b/></root>")
+
+        val markers = collectMarkers(xmlFile)
+        assertEquals("XML comment marker should parse and create one marker", 1, markers.size)
+        assertNotNull("XML marker should have an icon", markers.first().icon)
+    }
+
+    fun testTwoParameterMarkerWithInvalidDestinationCreatesErrorMarker() {
+        val javaFile = myFixture.addFileToProject(
+            "InvalidDest.java",
+            """
+                // @DiffLink: /valid/source.java, /missing/destination.java
+                public class InvalidDest {}
+            """.trimIndent()
+        )
+        myFixture.addFileToProject("valid/source.java", "public class Source {}")
+
+        val markers = collectMarkers(javaFile)
+        assertEquals("Invalid destination should still produce one marker", 1, markers.size)
+        assertEquals("Marker should be error icon when destination is missing", AllIcons.General.Error, markers.first().icon)
     }
 }

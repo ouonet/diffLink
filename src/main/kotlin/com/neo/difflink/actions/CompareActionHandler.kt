@@ -14,7 +14,11 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * Handles opening the diff viewer when a @DiffLink marker is clicked.
  */
-class CompareActionHandler : AnAction() {
+class CompareActionHandler(
+    private val showDiff: (Project, SimpleDiffRequest) -> Unit = { project, request ->
+        DiffManager.getInstance().showDiff(project, request)
+    }
+) : AnAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         // This is called via the menu action, not used for gutter clicks
@@ -41,7 +45,7 @@ class CompareActionHandler : AnAction() {
             )
 
             // Show diff in IntelliJ's diff viewer
-            DiffManager.getInstance().showDiff(project, diffRequest)
+            showDiff(project, diffRequest)
         } catch (e: Exception) {
             // Log error (IntelliJ will handle the notification)
             NotificationGroupManager.getInstance()

@@ -66,8 +66,9 @@ class CompareMarkerProvider : LineMarkerProvider {
         // Per-batch dedup: each call to collectSlowLineMarkers gets its own HashSet.
         // Two-phase rendering (visible + non-visible batches) passes disjoint element
         // sets, so a line is processed at most once per phase — which is correct.
-        // HTML duplicate-icon issue is solved by removing the XML registration in
-        // plugin.xml (HTMLLanguage extends XMLLanguage; only one provider must fire).
+        // HTML duplicate-icon issue is handled by isXmlSubDialect(): when this provider
+        // runs for XML registration on an XML sub-dialect (e.g. HTML), we return early
+        // and let the more-specific language registration handle the file.
         val seenLines = HashSet<Int>()
 
         for (element in elements) {

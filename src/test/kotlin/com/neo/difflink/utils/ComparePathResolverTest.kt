@@ -65,6 +65,21 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
         assertTrue("Should reject HTTP URLs", result is ComparePathResolver.ResolveResult.Error)
     }
 
+    fun testRejectHttpsUrls() {
+        val result = resolver.resolvePath("https://example.com/file.java", project)
+        assertTrue("Should reject HTTPS URLs", result is ComparePathResolver.ResolveResult.Error)
+    }
+
+    fun testRejectExternalUrlsCaseInsensitive() {
+        val result = resolver.resolvePath("HTTP://example.com/file.java", project)
+        assertTrue("Should reject mixed-case URL schemes", result is ComparePathResolver.ResolveResult.Error)
+    }
+
+    fun testRejectFileSchemeCaseInsensitive() {
+        val result = resolver.resolvePath("FiLe://tmp/file.java", project)
+        assertTrue("Should reject mixed-case file schemes", result is ComparePathResolver.ResolveResult.Error)
+    }
+
     fun testRelativePathResolvesFromProjectRoot() {
         myFixture.addFileToProject("src/Test.java", "public class Test {}")
 

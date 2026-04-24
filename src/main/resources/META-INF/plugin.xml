@@ -12,6 +12,7 @@
         <ul>
             <li>One-click diff from editor gutter markers</li>
             <li>Single-target and explicit two-file compare formats</li>
+            <li>Git history compare via <code>git://ref:path</code> syntax — compare any branch, tag, or commit SHA</li>
             <li>Works across common text-based files (Java, Kotlin, Python, JavaScript, Markdown, XML, shell, config)</li>
             <li>Clear error markers for missing or invalid paths</li>
             <li>Local-only behavior: no source upload, no remote diff processing</li>
@@ -19,7 +20,9 @@
 
         <h3>Marker examples</h3>
         <pre><code>@DiffLink:src/main/java/legacy/OldImplementation.java
-@DiffLink:/Users/me/project/v1/File.kt, /Users/me/project/v2/File.kt</code></pre>
+@DiffLink:/Users/me/project/v1/File.kt, /Users/me/project/v2/File.kt
+@DiffLink: git://HEAD~1:src/main/kotlin/Foo.kt
+@DiffLink: git://main:src/Foo.kt, git://dev:src/Foo.kt</code></pre>
 
         <h3>Screenshots</h3>
         <p><img src="https://raw.githubusercontent.com/ouonet/diffLink/1.0.0/src/main/resources/01-marker-in-editor.png" alt="Marker in editor with gutter icon" width="600"/></p>
@@ -30,7 +33,7 @@
         <p><b>Privacy:</b> local-only processing. DiffLink does not upload source code or diff content.</p>
     ]]></description>
 
-    <version>1.0.7</version>
+    <version>1.1.0</version>
     <idea-version since-build="232" />
     <change-notes><![CDATA[
         <p>See CHANGELOG.md for detailed release notes.</p>

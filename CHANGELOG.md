@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0] - 2026-04-24
+
+### Added
+- Git history comparison via `git://` syntax.
+  Use `@DiffLink: git://ref:path` to compare the current file against any git revision,
+  branch, or tag without leaving the editor.
+  - Single target: `@DiffLink: git://HEAD~1:src/main/kotlin/Foo.kt`
+  - Two-target: `@DiffLink: git://main:src/Foo.kt, git://dev:src/Foo.kt`
+  - Short SHA: `@DiffLink: git://abc1234:src/Foo.kt`
+  Requires `git` on the system `PATH`; runs `git show ref:path` via a subprocess.
+
 ## [1.0.7] - 2026-04-23
 
 ### Fixed

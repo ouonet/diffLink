@@ -15,6 +15,7 @@ class ComparePathResolver {
 
     sealed class ResolveResult {
         data class Success(val file: VirtualFile) : ResolveResult()
+        data class GitContent(val bytes: ByteArray, val label: String, val fileName: String) : ResolveResult()
         data class Error(val message: String) : ResolveResult()
     }
 
@@ -35,6 +36,10 @@ class ComparePathResolver {
             lowerPath.startsWith("file://")
         ) {
             return ResolveResult.Error("External URLs not allowed")
+        }
+
+        if (lowerPath.startsWith("git://")) {
+            return resolveGitPath(trimmedPath.removePrefix("git://"), project)
         }
 
         try {
@@ -63,6 +68,43 @@ class ComparePathResolver {
             return ResolveResult.Success(virtualFile)
         } catch (_: Exception) {
             return ResolveResult.Error("Error resolving path: Unknown error")
+        }
+    }
+
+    private fun resolveGitPath(refAndPath: String, project: Project): ResolveResult {
+        val colonIdx = refAndPath.indexOf(':')
+        if (colonIdx <= 0) {
+            return ResolveResult.Error("git:// path must be in format git://ref:file/path")
+        }
+        val ref = refAndPath.substring(0, colonIdx)
+        val filePath = refAndPath.substring(colonIdx + 1)
+        if (filePath.isEmpty()) {
+            return ResolveResult.Error("git:// path missing file path after ':'")
+        }
+
+        return try {
+            val projectDir = project.basePath
+                ?: return ResolveResult.Error("Project root not found")
+
+            val process = ProcessBuilder("git", "show", "$ref:$filePath")
+                .directory(File(projectDir))
+                .redirectErrorStream(false)
+                .start()
+
+            val stdout = process.inputStream.readBytes()
+            val stderr = process.errorStream.bufferedReader().readText()
+            val exitCode = process.waitFor()
+
+            if (exitCode != 0) {
+                val errMsg = stderr.trim().ifEmpty { "unknown error" }
+                return ResolveResult.Error("git show failed: $errMsg")
+            }
+
+            val label = "git://$ref:$filePath"
+            val fileName = filePath.substringAfterLast('/')
+            ResolveResult.GitContent(stdout, label, fileName)
+        } catch (e: Exception) {
+            ResolveResult.Error("git resolution failed: ${e.message}")
         }
     }
 }

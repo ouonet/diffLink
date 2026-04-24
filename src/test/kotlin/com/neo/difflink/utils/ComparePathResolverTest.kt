@@ -29,6 +29,7 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
                 // This is acceptable - the resolver is working correctly by returning an error
                 assertTrue("Error message should indicate file not found", result.message.contains("File not found") || result.message.contains("Project root"))
             }
+            else -> fail("Unexpected result type: $result")
         }
     }
 
@@ -91,6 +92,7 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
             is ComparePathResolver.ResolveResult.Error ->
                 // Acceptable in some test environments where basePath is unavailable
                 assertTrue(result.message.contains("File not found") || result.message.contains("Project root"))
+            else -> fail("Unexpected result type: $result")
         }
     }
 

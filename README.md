@@ -22,6 +22,29 @@ public class NewImplementation {
 class Feature
 ```
 
+### Git history compare
+
+Use the `git://ref:path` syntax to compare any git revision against the current file, or compare two historical revisions against each other.
+
+```kotlin
+// @DiffLink: git://HEAD~1:src/main/kotlin/com/example/Foo.kt
+class Foo
+```
+
+```kotlin
+// @DiffLink: git://abc1234:src/Foo.kt
+class Foo
+```
+
+```kotlin
+// @DiffLink: git://main:src/Foo.kt, git://dev:src/Foo.kt
+class Foo
+```
+
+Supported ref formats: branch names, tags, full and abbreviated commit SHAs, `HEAD`, `HEAD~N`, `@{upstream}`, and any other ref accepted by `git show`.
+
+Requires `git` to be available on the system `PATH`. DiffLink runs `git show ref:path` in a subprocess — no IDE git integration needed.
+
 ## Compatibility
 
 - **IDE products:** IntelliJ IDEA Community and Ultimate
@@ -33,12 +56,14 @@ class Feature
 
 - Single target: `@DiffLink:path/to/file`
 - Explicit source + destination: `@DiffLink:source/path, destination/path`
+- Git history: `@DiffLink: git://ref:path`
 
 Path behavior:
 - Relative paths resolve from project root.
 - Absolute paths are treated as filesystem paths.
+- `git://ref:path` paths are resolved by running `git show` against the project root.
 - Leading and trailing whitespace is trimmed.
-- Unsafe path traversal (`..`, `~`) and external URLs are rejected.
+- Unsafe path traversal (`..`, `~`) and external URLs (`http://`, `https://`, `file://`) are rejected.
 
 ## FAQ
 

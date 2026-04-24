@@ -35,6 +35,7 @@ jobs:
           import os
           import subprocess
           import sys
+            import time
 
           repo = os.environ["GITHUB_REPOSITORY"]
           sha = os.environ["GITHUB_SHA"]
@@ -46,22 +47,46 @@ jobs:
                   sys.exit(proc.returncode)
               return proc.stdout
 
-          runs_raw = run([
+          def list_ci_runs():
+            runs_raw = run([
               "gh", "run", "list",
               "--workflow", "ci.yml",
               "--commit", sha,
-              "--limit", "20",
+              "--limit", "50",
               "--json", "databaseId,status,conclusion,createdAt,url"
-          ])
-          runs = json.loads(runs_raw)
+            ])
+            return json.loads(runs_raw)
 
-          completed_success = [r for r in runs if r.get("status") == "completed" and r.get("conclusion") == "success"]
-          if not completed_success:
-              print(f"No successful CI run found for commit {sha}. Release is blocked.")
-              sys.exit(1)
+          ci_run = None
+          max_attempts = 30
+          wait_seconds = 20
 
-          completed_success.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
-          ci_run = completed_success[0]
+          for attempt in range(1, max_attempts + 1):
+            runs = list_ci_runs()
+            completed_success = [r for r in runs if r.get("status") == "completed" and r.get("conclusion") == "success"]
+
+            if completed_success:
+              completed_success.sort(key=lambda r: r.get("createdAt", ""), reverse=True)
+              ci_run = completed_success[0]
+              break
+
+            states = [f"{r.get('status')}/{r.get('conclusion')}" for r in runs]
+            states_text = ", ".join(states) if states else "none"
+            print(
+              f"No successful CI run found for commit {sha} yet "
+              f"(attempt {attempt}/{max_attempts}). Current CI states: {states_text}"
+            )
+
+            if attempt < max_attempts:
+              time.sleep(wait_seconds)
+
+          if ci_run is None:
+            print(
+              f"No successful CI run found for commit {sha} after "
+              f"{max_attempts * wait_seconds} seconds. Release is blocked."
+            )
+            sys.exit(1)
+
           run_id = ci_run["databaseId"]
           print(f"Using CI run: {run_id} ({ci_run.get('url', '')})")
 

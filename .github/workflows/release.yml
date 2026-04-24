@@ -119,13 +119,14 @@ jobs:
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         run: |
           VERSION="${RELEASE_VERSION}"
-          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version: ${VERSION}. Expected semantic version like 1.0.4"
+          NORMALIZED_VERSION="${VERSION#v}"
+          if [[ ! "${NORMALIZED_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: ${VERSION}. Expected semantic version like 1.0.4 or v1.0.4"
             exit 1
           fi
-          echo "Publishing plugin version: ${VERSION}"
+          echo "Publishing plugin version: ${NORMALIZED_VERSION} (from ${VERSION})"
 
           ./gradlew --no-daemon \
             signPlugin publishPlugin \
-            -PpluginVersion="${VERSION}"
+            -PpluginVersion="${NORMALIZED_VERSION}"
 

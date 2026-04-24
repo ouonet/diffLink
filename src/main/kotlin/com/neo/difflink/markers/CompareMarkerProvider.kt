@@ -101,24 +101,30 @@ class CompareMarkerProvider : LineMarkerProvider {
             val destResult = pathResolver.resolvePath(params.destination, project)
 
             result.add(when {
-                sourceResult is ComparePathResolver.ResolveResult.Success &&
-                    destResult is ComparePathResolver.ResolveResult.Success ->
-                    createMarker(element, markerRange,
-                        params.source.ifEmpty { fileName }, params.destination,
-                        sourceResult.file, destResult.file, isError = false)
-
                 sourceResult is ComparePathResolver.ResolveResult.Error ->
                     createMarker(element, markerRange,
                         params.source, params.destination,
                         errorMessage = sourceResult.message, isError = true)
 
+                destResult is ComparePathResolver.ResolveResult.Error ->
+                    createMarker(element, markerRange,
+                        params.source.ifEmpty { fileName }, params.destination,
+                        errorMessage = destResult.message, isError = true)
+
                 else ->
                     createMarker(element, markerRange,
                         params.source.ifEmpty { fileName }, params.destination,
-                        errorMessage = (destResult as ComparePathResolver.ResolveResult.Error).message,
-                        isError = true)
+                        source = toDiffSource(sourceResult)!!,
+                        destination = toDiffSource(destResult)!!,
+                        isError = false)
             })
         }
+    }
+
+    private fun toDiffSource(result: ComparePathResolver.ResolveResult): CompareActionHandler.DiffSource? = when (result) {
+        is ComparePathResolver.ResolveResult.Success -> CompareActionHandler.DiffSource.FileSource(result.file)
+        is ComparePathResolver.ResolveResult.GitContent -> CompareActionHandler.DiffSource.GitContent(result.bytes, result.label, result.fileName)
+        is ComparePathResolver.ResolveResult.Error -> null
     }
 
     private fun createMarker(
@@ -126,8 +132,8 @@ class CompareMarkerProvider : LineMarkerProvider {
         markerRange: TextRange,
         sourcePath: String,
         destPath: String,
-        sourceFile: VirtualFile? = null,
-        destinationFile: VirtualFile? = null,
+        source: CompareActionHandler.DiffSource? = null,
+        destination: CompareActionHandler.DiffSource? = null,
         errorMessage: String? = null,
         isError: Boolean
     ): LineMarkerInfo<PsiElement> {
@@ -143,8 +149,8 @@ class CompareMarkerProvider : LineMarkerProvider {
             icon,
             { tooltip },
             { _, elt ->
-                if (!isError && sourceFile != null && destinationFile != null) {
-                    CompareActionHandler().navigateToComparison(sourceFile, destinationFile, elt.project)
+                if (!isError && source != null && destination != null) {
+                    CompareActionHandler().navigateToComparison(source, destination, elt.project)
                 }
             },
             GutterIconRenderer.Alignment.LEFT,

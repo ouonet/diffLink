@@ -8,6 +8,7 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -20,34 +21,42 @@ class CompareActionHandler(
     }
 ) : AnAction() {
 
+    /** Represents a file source for diffing — either a local VirtualFile or git history content. */
+    sealed class DiffSource {
+        data class FileSource(val file: VirtualFile) : DiffSource()
+        data class GitContent(val bytes: ByteArray, val label: String, val fileName: String) : DiffSource()
+    }
+
     override fun actionPerformed(e: AnActionEvent) {
         // This is called via the menu action, not used for gutter clicks
         // (gutter clicks invoke navigateToComparison directly)
     }
 
+    /** Convenience overload for local VirtualFile sources. */
+    fun navigateToComparison(sourceFile: VirtualFile, destinationFile: VirtualFile, project: Project) {
+        navigateToComparison(DiffSource.FileSource(sourceFile), DiffSource.FileSource(destinationFile), project)
+    }
+
     fun navigateToComparison(
-        sourceFile: VirtualFile,
-        destinationFile: VirtualFile,
+        source: DiffSource,
+        destination: DiffSource,
         project: Project
     ) {
         try {
             val contentFactory = DiffContentFactory.getInstance()
-            val sourceContent = createDiffContent(contentFactory, project, sourceFile)
-            val destContent = createDiffContent(contentFactory, project, destinationFile)
+            val sourceContent = createDiffContent(contentFactory, project, source)
+            val destContent = createDiffContent(contentFactory, project, destination)
 
-            // Create diff request
             val diffRequest = SimpleDiffRequest(
                 "Compare Files",
                 sourceContent,
                 destContent,
-                sourceFile.name,
-                destinationFile.name
+                labelFor(source),
+                labelFor(destination)
             )
 
-            // Show diff in IntelliJ's diff viewer
             showDiff(project, diffRequest)
         } catch (e: Exception) {
-            // Log error (IntelliJ will handle the notification)
             NotificationGroupManager.getInstance()
                 .getNotificationGroup("DiffLink")
                 .createNotification(
@@ -58,7 +67,24 @@ class CompareActionHandler(
         }
     }
 
+    private fun labelFor(source: DiffSource): String = when (source) {
+        is DiffSource.FileSource -> source.file.name
+        is DiffSource.GitContent -> source.label
+    }
+
     private fun createDiffContent(
+        contentFactory: DiffContentFactory,
+        project: Project,
+        source: DiffSource
+    ): DiffContent = when (source) {
+        is DiffSource.FileSource -> createFileContent(contentFactory, project, source.file)
+        is DiffSource.GitContent -> {
+            val fileType = FileTypeManager.getInstance().getFileTypeByFileName(source.fileName)
+            contentFactory.create(project, source.bytes.toString(Charsets.UTF_8), fileType)
+        }
+    }
+
+    private fun createFileContent(
         contentFactory: DiffContentFactory,
         project: Project,
         file: VirtualFile

@@ -1,30 +1,18 @@
 package com.neo.difflink.actions
 
-import com.intellij.diff.DiffManager
-import com.intellij.diff.requests.DiffRequest
+import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
 
 class CompareActionHandlerTest : LightJavaCodeInsightFixtureTestCase() {
 
-    private lateinit var handler: CompareActionHandler
-    private var diffRequestCaptured: DiffRequest? = null
+    fun testNavigateToComparisonCreatesExpectedDiffRequest() {
+        var capturedRequest: SimpleDiffRequest? = null
+        val handler = CompareActionHandler { _, request ->
+            capturedRequest = request
+        }
 
-    override fun setUp() {
-        super.setUp()
-        handler = CompareActionHandler()
-
-        // Mock DiffManager to capture diff requests without actually opening UI
-        val mockDiffManager = mock(DiffManager::class.java)
-        doAnswer { invocation ->
-            val request = invocation.arguments[1] as DiffRequest
-            diffRequestCaptured = request
-            null
-        }.`when`(mockDiffManager).showDiff(any(), any())
-    }
-
-    fun testNavigateToComparisonWithValidFiles() {
         // Create two test files
         val sourceFile = myFixture.addFileToProject(
             "SourceFile.java",
@@ -54,52 +42,17 @@ class CompareActionHandlerTest : LightJavaCodeInsightFixtureTestCase() {
         assertEquals("Source file name should match", "SourceFile.java", sourceFile.name)
         assertEquals("Destination file name should match", "DestinationFile.java", destinationFile.name)
 
-        // Call navigateToComparison - should not throw exception
-        try {
-            handler.navigateToComparison(sourceFile, destinationFile, project)
-            // Test passes if no exception is thrown
-            assertTrue("navigateToComparison should complete successfully", true)
-        } catch (e: Exception) {
-            fail("navigateToComparison should not throw exception: ${e.message}")
-        }
-    }
+        handler.navigateToComparison(sourceFile, destinationFile, project)
 
-    fun testNavigateToComparisonHandlesMissingFile() {
-        // Create only one file
-        val sourceFile = myFixture.addFileToProject(
-            "SourceFile.java",
-            """
-                public class SourceFile {
-                    public void method() {
-                    }
-                }
-            """.trimIndent()
-        ).virtualFile
-
-        assertNotNull("Source file should be created", sourceFile)
-
-        // Create a virtual file reference to a non-existent file
-        val missingFile = sourceFile.parent!!.findFileByRelativePath("NonExistent.java")
-
-        // If missing file doesn't exist, create a mock or use a different approach
-        // We'll simulate the error by using an invalid/null scenario
-        if (missingFile == null) {
-            // This simulates the case where a file reference is broken
-            try {
-                // Attempting to open comparison with missing file should be handled gracefully
-                // The handler should catch the exception and show a notification
-                handler.navigateToComparison(sourceFile, sourceFile, project)
-                // Test passes if no unhandled exception is thrown
-                assertTrue("Should handle missing file gracefully", true)
-            } catch (e: Exception) {
-                fail("Should handle missing file exception gracefully: ${e.message}")
-            }
-        } else {
-            assertTrue("Test setup: missing file was unexpectedly created", false)
-        }
+        val request = capturedRequest
+        assertNotNull("Diff request should be captured", request)
+        assertEquals("Request title should match", "Compare Files", request!!.title)
+        assertEquals("Left content title should be source file", "SourceFile.java", request.contentTitles[0])
+        assertEquals("Right content title should be destination file", "DestinationFile.java", request.contentTitles[1])
     }
 
     fun testActionPerformed() {
+        val handler = CompareActionHandler()
         // Test that the action can be invoked without errors
         val mockEvent = mock(AnActionEvent::class.java)
 
@@ -114,27 +67,19 @@ class CompareActionHandlerTest : LightJavaCodeInsightFixtureTestCase() {
         }
     }
 
-    fun testNavigateToComparisonPreservesFileContent() {
-        // Create files with distinct content
-        val sourceContent = "public class Source { }"
-        val destContent = "public class Destination { }"
+    fun testNavigateToComparisonSwallowsShowDiffFailure() {
+        val handler = CompareActionHandler { _, _ ->
+            throw RuntimeException("boom")
+        }
 
-        val sourceFile = myFixture.addFileToProject("Source.java", sourceContent).virtualFile
-        val destFile = myFixture.addFileToProject("Dest.java", destContent).virtualFile
+        val sourceFile = myFixture.addFileToProject("Source.java", "public class Source { }").virtualFile
+        val destFile = myFixture.addFileToProject("Dest.java", "public class Destination { }").virtualFile
 
-        assertNotNull("Source file should exist", sourceFile)
-        assertNotNull("Destination file should exist", destFile)
-
-        // Verify file content is preserved
-        assertEquals("Source file content should match", sourceContent, String(sourceFile.contentsToByteArray()))
-        assertEquals("Destination file content should match", destContent, String(destFile.contentsToByteArray()))
-
-        // Navigate should work with valid content
         try {
             handler.navigateToComparison(sourceFile, destFile, project)
-            assertTrue("Should handle files with content", true)
+            assertTrue("navigateToComparison should swallow showDiff failures", true)
         } catch (e: Exception) {
-            fail("Should not fail with file content: ${e.message}")
+            fail("navigateToComparison should not throw when showDiff fails: ${e.message}")
         }
     }
 }

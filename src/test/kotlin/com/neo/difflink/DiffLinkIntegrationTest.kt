@@ -179,4 +179,36 @@ class DiffLinkIntegrationTest : LightJavaCodeInsightFixtureTestCase() {
         // comparison may not be reliable across different IntelliJ versions
         assertNotNull("Icon should be an error icon", marker.icon)
     }
+
+    /**
+     * Test 4: End-to-end workflow with explicit source and destination paths.
+     * Verifies that two-parameter @DiffLink syntax generates a valid marker.
+     */
+    fun testEndToEndWorkflowWithExplicitSourceAndDestination() {
+        val tempDir = File(System.getProperty("java.io.tmpdir"), "difflink-two-file-${System.nanoTime()}")
+        tempDir.mkdirs()
+
+        val sourceOnDisk = File(tempDir, "SourceVersion.java").apply {
+            writeText("public class SourceVersion { int value = 1; }")
+        }
+        val destinationOnDisk = File(tempDir, "DestinationVersion.java").apply {
+            writeText("public class DestinationVersion { int value = 2; }")
+        }
+
+        val markerHostFile = myFixture.addFileToProject(
+            "MarkerHost.java",
+            """
+                public class MarkerHost {
+                    // @DiffLink: ${sourceOnDisk.absolutePath}, ${destinationOnDisk.absolutePath}
+                }
+            """.trimIndent()
+        )
+
+        assertTrue("Source file should exist on disk", sourceOnDisk.exists())
+        assertTrue("Destination file should exist on disk", destinationOnDisk.exists())
+
+        val markers = collectMarkers(markerHostFile)
+        assertEquals("Two-parameter syntax should produce one marker", 1, markers.size)
+        assertEquals("Marker should be Diff icon for valid explicit paths", AllIcons.Actions.Diff, markers.first().icon)
+    }
 }

@@ -20,6 +20,7 @@ class ComparePathResolver {
 
     fun resolvePath(path: String, project: Project): ResolveResult {
         val trimmedPath = path.trim()
+        val lowerPath = trimmedPath.lowercase()
 
         if (trimmedPath.isEmpty()) {
             return ResolveResult.Error("Path cannot be empty")
@@ -29,7 +30,10 @@ class ComparePathResolver {
             return ResolveResult.Error("Path traversal not allowed")
         }
 
-        if (trimmedPath.startsWith("http") || trimmedPath.startsWith("file://")) {
+        if (lowerPath.startsWith("http://") ||
+            lowerPath.startsWith("https://") ||
+            lowerPath.startsWith("file://")
+        ) {
             return ResolveResult.Error("External URLs not allowed")
         }
 

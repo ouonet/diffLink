@@ -30,10 +30,10 @@
         <p><b>Privacy:</b> local-only processing. DiffLink does not upload source code or diff content.</p>
     ]]></description>
 
-    <version>1.0.1</version>
+    <version>1.0.7</version>
     <idea-version since-build="232" />
     <change-notes><![CDATA[
-        <p>Initial release.</p>
+        <p>See CHANGELOG.md for detailed release notes.</p>
     ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>

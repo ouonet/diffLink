@@ -118,4 +118,37 @@ class ComparePathResolverTest : LightJavaCodeInsightFixtureTestCase() {
             resultWithSpaces is ComparePathResolver.ResolveResult.Success,
             resultClean is ComparePathResolver.ResolveResult.Success)
     }
+
+    fun testExpandGitShorthandUsesCurrentFilePath() {
+        val expanded = resolver.expandGitShorthand(
+            "git://HEAD~1",
+            "/repo/src/main/java/com/example/Test.java",
+            "/repo"
+        )
+
+        assertEquals(
+            "git://HEAD~1:src/main/java/com/example/Test.java",
+            expanded
+        )
+    }
+
+    fun testExpandGitShorthandKeepsExplicitGitPath() {
+        val expanded = resolver.expandGitShorthand(
+            "git://v1.1.0:src/Foo.kt",
+            "/repo/src/main/kotlin/com/example/Test.kt",
+            "/repo"
+        )
+
+        assertEquals("git://v1.1.0:src/Foo.kt", expanded)
+    }
+
+    fun testExpandGitShorthandKeepsPathOutsideProject() {
+        val expanded = resolver.expandGitShorthand(
+            "git://HEAD",
+            "/other/place/Test.java",
+            "/repo"
+        )
+
+        assertEquals("git://HEAD", expanded)
+    }
 }

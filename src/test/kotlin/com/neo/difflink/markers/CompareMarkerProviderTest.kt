@@ -206,6 +206,21 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         assertEquals("Single-parameter syntax should parse", 1, markers.size)
     }
 
+    fun testParseGitShorthandMarkerFormat() {
+        val javaFile = myFixture.addFileToProject(
+            "src/main/java/com/example/Current.java",
+            """
+                package com.example;
+
+                // @DiffLink: git://HEAD~1
+                public class Current {}
+            """.trimIndent()
+        )
+
+        val markers = collectMarkers(javaFile)
+        assertEquals("git://<ref> shorthand should still produce one marker", 1, markers.size)
+    }
+
     fun testParseTwoParameterMarkerFormat() {
         val javaFile = myFixture.addFileToProject(
             "Version1.java",

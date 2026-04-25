@@ -19,6 +19,26 @@ class ComparePathResolver {
         data class Error(val message: String) : ResolveResult()
     }
 
+    fun expandGitShorthand(path: String, currentFilePath: String, projectBasePath: String?): String {
+        val trimmedPath = path.trim()
+        if (!trimmedPath.startsWith("git://")) return trimmedPath
+
+        val ref = trimmedPath.removePrefix("git://")
+        if (ref.isEmpty() || ref.contains(':') || projectBasePath.isNullOrBlank()) return trimmedPath
+
+        val projectDir = File(projectBasePath)
+        val currentFile = File(currentFilePath)
+        val relativePath = currentFile.toRelativeString(projectDir)
+            .replace(File.separatorChar, '/')
+            .removePrefix("./")
+
+        return if (relativePath.startsWith("../") || relativePath == "..") {
+            trimmedPath
+        } else {
+            "git://$ref:$relativePath"
+        }
+    }
+
     fun resolvePath(path: String, project: Project): ResolveResult {
         val trimmedPath = path.trim()
         val lowerPath = trimmedPath.lowercase()

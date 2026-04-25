@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2] - 2026-04-25
+
+### Added
+- Added shorthand git-history comparison for the current file with `@DiffLink: git://ref`.
+  DiffLink now expands the marker to the current file's repository-relative path automatically,
+  so `@DiffLink: git://HEAD~1` compares the open file against its historical revision.
+
 ## [1.1.1] - 2026-04-25
 
 ### Fixed

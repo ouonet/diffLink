@@ -96,28 +96,31 @@ class CompareMarkerProvider : LineMarkerProvider {
 
                 val params = parseMarkerParams(match)
                 val fileName = file.name
+                val currentFilePath = file.virtualFile?.path ?: continue
+                val sourcePath = pathResolver.expandGitShorthand(params.source, currentFilePath, project.basePath)
+                val destinationPath = pathResolver.expandGitShorthand(params.destination, currentFilePath, project.basePath)
 
-                val sourceResult = if (params.source.isNotEmpty()) {
-                    pathResolver.resolvePath(params.source, project)
+                val sourceResult = if (sourcePath.isNotEmpty()) {
+                    pathResolver.resolvePath(sourcePath, project)
                 } else {
                     ComparePathResolver.ResolveResult.Success(file.virtualFile ?: continue)
                 }
-                val destResult = pathResolver.resolvePath(params.destination, project)
+                val destResult = pathResolver.resolvePath(destinationPath, project)
 
                 result.add(when {
                     sourceResult is ComparePathResolver.ResolveResult.Error ->
                         createMarker(element, markerRange,
-                            params.source, params.destination,
+                            sourcePath, destinationPath,
                             errorMessage = sourceResult.message, isError = true)
 
                     destResult is ComparePathResolver.ResolveResult.Error ->
                         createMarker(element, markerRange,
-                            params.source.ifEmpty { fileName }, params.destination,
+                            sourcePath.ifEmpty { fileName }, destinationPath,
                             errorMessage = destResult.message, isError = true)
 
                     else ->
                         createMarker(element, markerRange,
-                            params.source.ifEmpty { fileName }, params.destination,
+                            sourcePath.ifEmpty { fileName }, destinationPath,
                             source = toDiffSource(sourceResult)!!,
                             destination = toDiffSource(destResult)!!,
                             isError = false)

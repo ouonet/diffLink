@@ -14,7 +14,10 @@ import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Handles opening the diff viewer when a @DiffLink marker is clicked.
+ * @DiffLink: git://1.0.1:src/main/kotlin/com/neo/difflink/utils/ComparePathResolver.kt
  */
+// Compare current file (left) with file content from tag v1.0.0 (right)
+// @DiffLink: git://1.0.1:src/main/kotlin/com/neo/difflink/utils/ComparePathResolver.kt
 class CompareActionHandler(
     private val showDiff: (Project, SimpleDiffRequest) -> Unit = { project, request ->
         DiffManager.getInstance().showDiff(project, request)

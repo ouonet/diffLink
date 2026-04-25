@@ -33,7 +33,7 @@
         <p><b>Privacy:</b> local-only processing. DiffLink does not upload source code or diff content.</p>
     ]]></description>
 
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <idea-version since-build="232" />
     <change-notes><![CDATA[
         <p>See CHANGELOG.md for detailed release notes.</p>

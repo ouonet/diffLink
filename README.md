@@ -26,8 +26,15 @@ class Feature
 
 Use the `git://ref:path` syntax to compare any git revision against the current file, or compare two historical revisions against each other.
 
+If you only want to compare the current file against history, you can use the shorthand `git://ref`. DiffLink will expand it to the current file's repository-relative path automatically.
+
 ```kotlin
 // @DiffLink: git://HEAD~1:src/main/kotlin/com/example/Foo.kt
+class Foo
+```
+
+```kotlin
+// @DiffLink: git://HEAD~1
 class Foo
 ```
 
@@ -57,11 +64,13 @@ Requires `git` to be available on the system `PATH`. DiffLink runs `git show ref
 - Single target: `@DiffLink:path/to/file`
 - Explicit source + destination: `@DiffLink:source/path, destination/path`
 - Git history: `@DiffLink: git://ref:path`
+- Git history shorthand for current file: `@DiffLink: git://ref`
 
 Path behavior:
 - Relative paths resolve from project root.
 - Absolute paths are treated as filesystem paths.
 - `git://ref:path` paths are resolved by running `git show` against the project root.
+- `git://ref` is expanded to the current file's repository-relative path before resolution.
 - Leading and trailing whitespace is trimmed.
 - Unsafe path traversal (`..`, `~`) and external URLs (`http://`, `https://`, `file://`) are rejected.
 

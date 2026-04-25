@@ -27,6 +27,10 @@ class ComparePathResolver {
             return ResolveResult.Error("Path cannot be empty")
         }
 
+        if (lowerPath.startsWith("git://")) {
+            return resolveGitPath(trimmedPath.removePrefix("git://"), project)
+        }
+
         if (trimmedPath.contains("..") || trimmedPath.contains("~")) {
             return ResolveResult.Error("Path traversal not allowed")
         }
@@ -36,10 +40,6 @@ class ComparePathResolver {
             lowerPath.startsWith("file://")
         ) {
             return ResolveResult.Error("External URLs not allowed")
-        }
-
-        if (lowerPath.startsWith("git://")) {
-            return resolveGitPath(trimmedPath.removePrefix("git://"), project)
         }
 
         try {

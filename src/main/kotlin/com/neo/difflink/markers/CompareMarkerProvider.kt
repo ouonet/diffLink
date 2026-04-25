@@ -77,47 +77,52 @@ class CompareMarkerProvider : LineMarkerProvider {
             val range = element.textRange ?: continue
             if (range.length <= 0) continue
 
-            val lineNum = document.getLineNumber(range.startOffset)
-            if (!seenLines.add(lineNum)) continue   // already handled in this batch
+            val startLine = document.getLineNumber(range.startOffset)
+            val endOffset = (range.endOffset - 1).coerceAtLeast(range.startOffset)
+            val endLine = document.getLineNumber(endOffset)
 
-            val lineStart = document.getLineStartOffset(lineNum)
-            val lineEnd   = document.getLineEndOffset(lineNum)
-            val lineText  = document.charsSequence.subSequence(lineStart, lineEnd).toString()
-            val match     = comparePattern.find(lineText) ?: continue
+            for (lineNum in startLine..endLine) {
+                if (!seenLines.add(lineNum)) continue
 
-            val markerRange = TextRange(
-                lineStart + match.range.first,
-                lineStart + match.range.last + 1
-            )
+                val lineStart = document.getLineStartOffset(lineNum)
+                val lineEnd = document.getLineEndOffset(lineNum)
+                val lineText = document.charsSequence.subSequence(lineStart, lineEnd).toString()
+                val match = comparePattern.find(lineText) ?: continue
 
-            val params = parseMarkerParams(match)
-            val fileName = file.name
+                val markerRange = TextRange(
+                    lineStart + match.range.first,
+                    lineStart + match.range.last + 1
+                )
 
-            val sourceResult = if (params.source.isNotEmpty()) {
-                pathResolver.resolvePath(params.source, project)
-            } else {
-                ComparePathResolver.ResolveResult.Success(file.virtualFile ?: continue)
+                val params = parseMarkerParams(match)
+                val fileName = file.name
+
+                val sourceResult = if (params.source.isNotEmpty()) {
+                    pathResolver.resolvePath(params.source, project)
+                } else {
+                    ComparePathResolver.ResolveResult.Success(file.virtualFile ?: continue)
+                }
+                val destResult = pathResolver.resolvePath(params.destination, project)
+
+                result.add(when {
+                    sourceResult is ComparePathResolver.ResolveResult.Error ->
+                        createMarker(element, markerRange,
+                            params.source, params.destination,
+                            errorMessage = sourceResult.message, isError = true)
+
+                    destResult is ComparePathResolver.ResolveResult.Error ->
+                        createMarker(element, markerRange,
+                            params.source.ifEmpty { fileName }, params.destination,
+                            errorMessage = destResult.message, isError = true)
+
+                    else ->
+                        createMarker(element, markerRange,
+                            params.source.ifEmpty { fileName }, params.destination,
+                            source = toDiffSource(sourceResult)!!,
+                            destination = toDiffSource(destResult)!!,
+                            isError = false)
+                })
             }
-            val destResult = pathResolver.resolvePath(params.destination, project)
-
-            result.add(when {
-                sourceResult is ComparePathResolver.ResolveResult.Error ->
-                    createMarker(element, markerRange,
-                        params.source, params.destination,
-                        errorMessage = sourceResult.message, isError = true)
-
-                destResult is ComparePathResolver.ResolveResult.Error ->
-                    createMarker(element, markerRange,
-                        params.source.ifEmpty { fileName }, params.destination,
-                        errorMessage = destResult.message, isError = true)
-
-                else ->
-                    createMarker(element, markerRange,
-                        params.source.ifEmpty { fileName }, params.destination,
-                        source = toDiffSource(sourceResult)!!,
-                        destination = toDiffSource(destResult)!!,
-                        isError = false)
-            })
         }
     }
 

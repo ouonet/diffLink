@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2026-04-25
+
+### Fixed
+- Allowed git refs containing `~` in `git://` expressions, so history targets like `@DiffLink: git://HEAD~1:path/to/File.java` resolve correctly.
+- Restored `@DiffLink` detection inside multiline block comments using `/* ... */`, not only JavaDoc-style `/** ... */` comments.
+
 ## [1.1.0] - 2026-04-24
 
 ### Added

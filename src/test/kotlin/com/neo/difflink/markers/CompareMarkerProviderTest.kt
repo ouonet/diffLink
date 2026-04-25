@@ -112,6 +112,25 @@ class CompareMarkerProviderTest : LightJavaCodeInsightFixtureTestCase() {
         assertEquals("Block comment with @DiffLink should create one marker", 1, markers.size)
     }
 
+    fun testMultilineBlockCommentDetection() {
+        val testFile = myFixture.addFileToProject(
+            "Test.java",
+            """
+                public class Test {
+                    /*
+                     * @DiffLink: /TestFile.java
+                     */
+                    public void method() {
+                    }
+                }
+            """.trimIndent()
+        )
+        myFixture.addFileToProject("TestFile.java", "public class TestFile {}")
+
+        val markers = collectMarkers(testFile)
+        assertEquals("Multiline block comment with @DiffLink should create one marker", 1, markers.size)
+    }
+
     fun testWhitespaceHandling() {
         val testFile = myFixture.addFileToProject(
             "Test.java",

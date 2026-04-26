@@ -1,5 +1,11 @@
 # DiffLink
 
+<div align="center">
+  <img src="src/main/resources/META-INF/pluginIcon.svg" alt="DiffLink Logo" width="80" height="80">
+  
+  **[Get it on JetBrains Marketplace](https://plugins.jetbrains.com/plugin/24949-difflink)**
+</div>
+
 DiffLink lets you open IntelliJ's diff viewer from an inline `@DiffLink` marker.
 It is built for refactoring and migration workflows where you need to compare old and new files quickly without leaving the editor.
 
